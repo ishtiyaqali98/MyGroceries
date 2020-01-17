@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ic_launcher_background"
+    tools:context=".createList">
+    <ImageView
+        android:id="@+id/imageView8632"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.ActionButton"
+        android:clickable="true"
+        android:onClick="backbtn4"
+        android:src="@drawable/backbtnwhite" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+
+        android:id="@+id/lin3"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:orientation="vertical">
+
+        <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColorHint="@color/white"
+        android:textColor="@color/white"
+            android:id="@+id/edittext1"
+        app:backgroundTint="@color/white"
+            android:ems="10"
+            android:inputType="textCapWords"
+        android:textSize="@dimen/edittextsize"
+        android:hint="Create a shopping list">
+    </EditText>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?android:attr/actionButtonStyle"
+            android:textSize="@dimen/edittextsizebtn"
+            android:id="@+id/submitbtn"
+            android:textColor="@color/white"
+            app:backgroundTint="@android:color/transparent"
+            android:text="SUBMIT" />
+        </LinearLayout>
+    </LinearLayout>
+
+
+
+
+</RelativeLayout>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="itemsize">25sp</dimen>
+    <dimen name="subitemsize">19sp</dimen>
+
+    <dimen name="edittextsize">23sp</dimen>
+    <dimen name="edittextsizebtn">20sp</dimen>
+
+
+
+</resources>
