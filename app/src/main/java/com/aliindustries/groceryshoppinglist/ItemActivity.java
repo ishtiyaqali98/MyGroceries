@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.Paint;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -59,7 +60,9 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
         listView = (ListView) findViewById(R.id.listview2);
         noitemlayout = (LinearLayout) findViewById(R.id.lin5);
         myDb = DatabaseHelper.getInstance(ItemActivity.this);
-
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.ic_launcher_background));
+        }
         setTitle("My new title");
         if (extras != null) {
             maintitle = extras.getString("c_title");

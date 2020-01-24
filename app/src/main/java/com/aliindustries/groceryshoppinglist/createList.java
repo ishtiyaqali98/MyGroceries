@@ -3,6 +3,7 @@ package com.aliindustries.groceryshoppinglist;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -27,7 +28,9 @@ public class createList extends AppCompatActivity {
         materialButton = (MaterialButton) findViewById(R.id.submitbtn);
         myDb = DatabaseHelper.getInstance(createList.this);
 
-
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.ic_launcher_background));
+        }
 
         materialButton.setOnClickListener(new View.OnClickListener() {
             @Override
