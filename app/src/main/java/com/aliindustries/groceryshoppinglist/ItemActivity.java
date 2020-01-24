@@ -289,10 +289,8 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                             if (bc == false && !myDb.itemExists(maintitle, newitem)) {
                                 Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Enter item name", Snackbar.LENGTH_LONG);
                                 snackbar.show();
-                            } else if (bc == true && myDb.itemExists(maintitle, newitem)) {
-                                Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "This item already exists!", Snackbar.LENGTH_LONG);
-                                snackbar.show();
-                            } else {
+                            }
+                            else {
                                 dialog.dismiss();
                                 final NumberPicker numberPicker = new NumberPicker(ItemActivity.this);
                                 numberPicker.setMaxValue(100);

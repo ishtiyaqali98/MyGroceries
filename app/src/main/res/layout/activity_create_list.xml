@@ -32,7 +32,7 @@
             android:id="@+id/edittext1"
         app:backgroundTint="@color/white"
             android:ems="10"
-            android:inputType="textCapWords"
+            android:inputType="textPersonName"
         android:textSize="@dimen/edittextsize"
         android:hint="Create a shopping list">
     </EditText>
@@ -57,8 +57,5 @@
             android:text="SUBMIT" />
         </LinearLayout>
     </LinearLayout>
-
-
-
 
 </RelativeLayout>

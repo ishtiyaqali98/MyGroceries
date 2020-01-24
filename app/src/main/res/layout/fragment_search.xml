@@ -24,7 +24,7 @@
         android:id="@+id/searchbar"
 
         android:layout_weight="1"
-        android:inputType="textCapWords"
+        android:inputType="textPersonName"
         android:queryHint="Enter an item"
         >
 
