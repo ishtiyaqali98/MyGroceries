@@ -44,5 +44,23 @@
         android:layout_height="wrap_content" />
 
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/lin3225"
+        android:background="@color/ic_launcher_background"
+        android:padding="3dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
 
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/subitemsize"
+        android:gravity="end"
+        android:layout_marginRight="11dp"
+        android:textColor="@color/white"
+        />
+    </LinearLayout>
 </RelativeLayout>

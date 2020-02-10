@@ -146,7 +146,7 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
                         }
                         else {
                             uv_counter = 1;
-                            Boolean a = myDb.insertData(maintitle, itemdata, 0, 1);
+                            Boolean a = myDb.insertData(maintitle, itemdata, 0, 1,round(0.00,2));
 
                             if(a == true) {
                                 Toast.makeText(context,itemdata + " * 1 added to " + maintitle + " shopping list",Toast.LENGTH_LONG).show();
@@ -254,5 +254,13 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
 
         }
 
+    }
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
 }

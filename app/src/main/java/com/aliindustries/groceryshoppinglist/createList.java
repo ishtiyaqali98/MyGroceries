@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -33,9 +34,13 @@ public class createList extends AppCompatActivity {
         }
 
         materialButton.setOnClickListener(new View.OnClickListener() {
+            private long mLastClickTime = 0;
             @Override
             public void onClick(View v) {
-
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
                 String v_title = editText.getText().toString().trim();
                 v_title = v_title.replace("'", "");
 
@@ -50,7 +55,7 @@ public class createList extends AppCompatActivity {
                     snackbar.show();
                 }
                 else {
-                    Boolean a = myDb.insertData(v_title, getResources().getString(R.string.itemidentifier), 0, 0);
+                    Boolean a = myDb.insertData(v_title, getResources().getString(R.string.itemidentifier), 0, 0,0);
                     if (a == true) {
                         startActivity(new Intent(createList.this, MainActivity.class));
 
@@ -64,8 +69,13 @@ public class createList extends AppCompatActivity {
 
 
     }
-    public void backbtn4(View v) {
+    private long mLastClickTime2 = 0;
 
+    public void backbtn4(View v) {
+        if (SystemClock.elapsedRealtime() - mLastClickTime2 < 1000){
+            return;
+        }
+        mLastClickTime2 = SystemClock.elapsedRealtime();
         startActivity(new Intent(createList.this,MainActivity.class));
         overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
 

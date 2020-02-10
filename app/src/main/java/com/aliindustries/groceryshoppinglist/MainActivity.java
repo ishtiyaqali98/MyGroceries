@@ -9,6 +9,7 @@ import android.os.Bundle;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import android.os.SystemClock;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -197,9 +198,13 @@ public class MainActivity extends AppCompatActivity {
         resultsListView.setAdapter(adapter);
 
         resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            private long mLastClickTime = 0;
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
                 Intent i = new Intent(MainActivity.this,ItemActivity.class);
                 i.putExtra("c_title", mtitle.get(position));
 

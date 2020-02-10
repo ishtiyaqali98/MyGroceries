@@ -8,6 +8,10 @@
             android:icon="@drawable/search"
             app:showAsAction="always"
             />
-
+    <item
+        android:id="@+id/changecurrency"
+        android:orderInCategory="100"
+        android:title="Change currency"
+        app:showAsAction="never" />
 
     </menu>

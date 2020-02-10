@@ -17,6 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_3 = "item";
     public static final String COL_4 = "ischecked";
     public static final String COL_5 = "quantity";
+    public static final String COL_6 = "price";
 
     private static DatabaseHelper mInstance = null;
 
@@ -39,7 +40,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_NAME +" (ID INTEGER PRIMARY KEY AUTOINCREMENT,TITLE TEXT,ITEM TEXT,ISCHECKED INTEGER, QUANTITY INTEGER )");
+        db.execSQL("CREATE TABLE " + TABLE_NAME +" (ID INTEGER PRIMARY KEY AUTOINCREMENT,TITLE TEXT,ITEM TEXT,ISCHECKED INTEGER, QUANTITY INTEGER,PRICE REAL )");
     }
 
     @Override
@@ -48,7 +49,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean insertData(String title, String item,Integer ischecked,Integer qty) {
+    public boolean insertData(String title, String item,Integer ischecked,Integer qty, double price) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues contentValues = new ContentValues();
@@ -56,6 +57,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         contentValues.put(COL_3,item);
         contentValues.put(COL_4,ischecked);
         contentValues.put(COL_5,qty);
+        contentValues.put(COL_6,price);
 
 
         long result = db.insert(TABLE_NAME,null ,contentValues);
@@ -191,7 +193,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
-
+    public boolean updatePrice(String id, double price,Integer is_checked) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_1,id);
+        contentValues.put(COL_4,is_checked);
+        contentValues.put(COL_6,price);
+        db.update(TABLE_NAME, contentValues, "ID = ?",new String[] { id });
+        return true;
+    }
 
     public Integer deleteData (String id) {
         SQLiteDatabase db = this.getWritableDatabase();

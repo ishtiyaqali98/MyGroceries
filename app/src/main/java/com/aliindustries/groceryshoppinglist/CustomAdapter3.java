@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -19,14 +21,19 @@ public class CustomAdapter3 extends BaseAdapter {
     private Context mContext;
     private ArrayList<String> Title;
     private ArrayList<Integer>  subtitle;
+    private ArrayList<Double>  price;
+    public static String mc_currentcurrency = "£";
+    DecimalFormat decim = new DecimalFormat("0.00");
+
     private View view2;
     DatabaseHelper myDb;
     private HashMap<Integer, Boolean> mSelection = new HashMap<Integer, Boolean>();
     LayoutInflater inflater;
-    public CustomAdapter3(Context context, ArrayList<String> text1,ArrayList<Integer>  subtext2) {
+    public CustomAdapter3(Context context, ArrayList<String> text1,ArrayList<Integer>  subtext2,ArrayList<Double>  price) {
         mContext = context;
         Title = text1;
         subtitle = subtext2;
+        this.price = price;
 
     }
     @Override
@@ -61,6 +68,7 @@ public class CustomAdapter3 extends BaseAdapter {
         myDb = DatabaseHelper.getInstance(mContext);
 
         TextView sub_title;
+        TextView subprice;
 
         inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
@@ -74,11 +82,15 @@ public class CustomAdapter3 extends BaseAdapter {
         view2 = inflater.inflate(R.layout.list_items2, parent, false);
         title = (TextView) view2.findViewById(R.id.textView3);
         sub_title = (TextView) view2.findViewById(R.id.textView4);
+        subprice = (TextView) view2.findViewById(R.id.price);
 
         title.setText(Title.get(position));
 
 
-        sub_title.setText("Qty: " + Integer.toString(subtitle.get(position)));
+        sub_title.setText("Qty: " + subtitle.get(position));
+
+        String s2 = decim.format(price.get(position));
+        subprice.setText("Price: " + mc_currentcurrency + s2);
 
 
         String s = sub_title.getText().toString();
@@ -106,6 +118,7 @@ public class CustomAdapter3 extends BaseAdapter {
         if(k == 0) {
             title.setPaintFlags( title.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
             sub_title.setPaintFlags( sub_title.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
+            subprice.setPaintFlags( subprice.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
 
             view2.setBackgroundColor(mContext.getResources().getColor(android.R.color.transparent));
 
@@ -114,6 +127,7 @@ public class CustomAdapter3 extends BaseAdapter {
         else if(k == 1) {
             title.setPaintFlags(title.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             sub_title.setPaintFlags(sub_title.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            subprice.setPaintFlags(subprice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
 
             view2.setBackgroundColor(mContext.getResources().getColor(R.color.lightgray));
 
@@ -129,7 +143,14 @@ public class CustomAdapter3 extends BaseAdapter {
 
         return view2;
     }
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
 
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
+    }
 
     public void setNewSelection(int position, boolean value)
     {
