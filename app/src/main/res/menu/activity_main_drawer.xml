@@ -4,7 +4,10 @@
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
-
+        <item
+            android:id="@+id/nav_notify"
+            android:icon="@drawable/notification"
+            android:title="Notifications" />
         <item
             android:id="@+id/nav_share"
             android:icon="@drawable/ic_menu_share"

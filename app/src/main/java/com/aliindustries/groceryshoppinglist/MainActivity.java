@@ -1,15 +1,25 @@
 package com.aliindustries.groceryshoppinglist;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 
+import com.aliindustries.groceryshoppinglist.ui.login.loginscreen;
+import com.aliindustries.groceryshoppinglist.ui.login.loginscreen;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import android.os.CountDownTimer;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -24,6 +34,12 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -34,6 +50,7 @@ import android.view.Menu;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -47,19 +64,30 @@ public class MainActivity extends AppCompatActivity {
     ListView resultsListView;
     LinearLayout nolistlayout;
     ArrayList<String> userSelection = new ArrayList<String>();
+    FirebaseAuth firebaseAuth;
+    DatabaseReference mref;
+    ArrayList<addFirebaseList> addFirebaseLists = new ArrayList<>();
+
+    String datachecker = "";
 
     ArrayList<String> mtitle;
     ArrayList<Integer> progress;
     String olditem = "";
     String newitem = "";
+    Button login;
     ArrayList<String> progresstxt;
     DatabaseHelper myDb;
     CustomAdapter2 adapter;
     ArrayList<Integer> posdelete = new ArrayList<>();
     int count = 0;
+    int count2 = 0;
+    String emailfirebasenode = "";
+
     ArrayList<Integer> ischeckedcount = new ArrayList<>();
     ArrayList<Integer> totalitemcount = new ArrayList<>();
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
+    String signinmethod = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,21 +97,97 @@ public class MainActivity extends AppCompatActivity {
         resultsListView = (ListView) findViewById(R.id.listview1);
         nolistlayout = (LinearLayout) findViewById(R.id.lin95);
         myDb = DatabaseHelper.getInstance(MainActivity.this);
+        firebaseAuth = FirebaseAuth.getInstance();
+        mref = FirebaseDatabase.getInstance().getReference();
 
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 startActivity(new Intent(MainActivity.this,createList.class));
                 overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down);
-
             }
         });
+
+
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.ic_launcher_background));
         }
+
+        try {
+            if(firebaseAuth.getCurrentUser() != null) {
+                if (isNetworkAvailable() == false) {
+                    Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                    snackbar.show();
+                } else {
+                    emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                    emailfirebasenode = emailfirebasenode.replace(".", "");
+                    signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                    if (firebaseAuth.getCurrentUser() != null) {
+                        if (!signinmethod.trim().equals("password")) {
+
+                        } else {
+                            emailfirebasenode = emailfirebasenode + "10125signincode";
+                        }
+                        count2 = (int) myDb.getAllCount();
+                        Cursor cursor2 = myDb.getAllData();
+                        if (cursor2.moveToFirst()) {
+                            do {
+                                int data0 = cursor2.getInt(cursor2.getColumnIndex("ID"));
+                                final String data1 = cursor2.getString(cursor2.getColumnIndex("TITLE"));
+
+                                String data2 = cursor2.getString(cursor2.getColumnIndex("ITEM"));
+                                int data3 = cursor2.getInt(cursor2.getColumnIndex("ISCHECKED"));
+                                int data4 = cursor2.getInt(cursor2.getColumnIndex("QUANTITY"));
+                                double data5 = cursor2.getDouble(cursor2.getColumnIndex("PRICE"));
+
+                                final String mydata = justAlphaChars(data1);
+                                if (count2 > 0 && addFirebaseLists.size() <= count2) {
+                                    addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5);
+                                    addFirebaseLists.add(addFirebaseList);
+                                }
+
+                                mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode);
+
+                                mref.addListenerForSingleValueEvent(new ValueEventListener() {
+
+                                    @Override
+                                    public void onDataChange(DataSnapshot snapshot) {
+                                        for (int i = 0; i < addFirebaseLists.size(); i++) {
+                                            int identifier1 = addFirebaseLists.get(i).getID();
+                                            if (snapshot.child(identifier1 + mydata).child(identifier1 + mydata + "item").hasChild(Integer.toString(addFirebaseLists.get(i).getID()))) {
+                                            } else {
+                                                if (addFirebaseLists.get(i).getTitle().trim().equals(data1)) {
+                                                    int identifier2 = addFirebaseLists.get(i).getID();
+                                                    mref.child(identifier2 + mydata).child(identifier2 + mydata + "item").setValue(addFirebaseLists.get(i));
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                    }
+                                });
+                                // do what ever you want here
+
+                            } while (cursor2.moveToNext());
+                        }
+                        cursor2.close();
+
+
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         final NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
@@ -97,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
 
         count = (int) myDb.getTitleCount();
+        System.out.println("the title count is: " + count);
         int counter = 0;
         mtitle = new ArrayList<String>();
         progress = new ArrayList<Integer>();
@@ -129,6 +234,53 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        View header = navigationView.getHeaderView(0);
+        login = header.findViewById(R.id.loginbutton);
+
+
+        login.setOnClickListener(new View.OnClickListener() {
+            private long mLastClickTime = 0;
+            @Override
+            public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
+
+                if(login.getText().toString().trim().equals("Sign in")) {
+                    startActivity(new Intent(MainActivity.this, loginscreen.class));
+                }
+                else {
+                    FirebaseAuth.getInstance().signOut();
+                }
+
+
+            }
+        });
+
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
+
+                if(firebaseAuth.getCurrentUser() != null &&  firebaseAuth.getCurrentUser().isEmailVerified()) {
+                    login.setText("Sign in");
+
+                    login.setText("Sign out");
+                    Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Signed in!", Snackbar.LENGTH_LONG);
+                    snackbar.show();
+
+                }
+                else {
+                    login.setText("Sign in");
+
+                }
+
+            }
+        };
+
+
 
 
         if(count <= 0) {
@@ -180,9 +332,7 @@ public class MainActivity extends AppCompatActivity {
 
             if(totalitemcount.get(i) != 0) {
                 double zx = ((double)ischeckedcount.get(i) / (double)totalitemcount.get(i)) * (double)100;
-                System.out.println("this is zx: " + zx);
                 int n = (int) Math.ceil(zx);
-                System.out.println("this is n: " + n);
 
                 progress.add(n);
             }
@@ -214,7 +364,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    public static String justAlphaChars(String text) {
 
+        text = text.replaceAll("[^A-Za-z0-9]","");
+
+        return text;
+    }
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -267,6 +422,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        firebaseAuth.addAuthStateListener(mAuthListener);
+
     }
 
     AbsListView.MultiChoiceModeListener modeListener  = new AbsListView.MultiChoiceModeListener() {
@@ -346,6 +503,7 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
 
                 case R.id.edit:
+
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Set shopping list");
                     View viewInflated = LayoutInflater.from(MainActivity.this).inflate(R.layout.edittextdialog, (ViewGroup) findViewById(android.R.id.content), false);
@@ -374,9 +532,81 @@ public class MainActivity extends AppCompatActivity {
                                 if (cursor1.moveToFirst()) {
                                     do {
                                         int data = cursor1.getInt(cursor1.getColumnIndex("ID"));
+                                        final String data2 = cursor1.getString(cursor1.getColumnIndex("ITEM"));
+                                        final int data3 = cursor1.getInt(cursor1.getColumnIndex("ISCHECKED"));
+                                        final double data4 = cursor1.getDouble(cursor1.getColumnIndex("PRICE"));
+                                        final int data5 = cursor1.getInt(cursor1.getColumnIndex("QUANTITY"));
 
                                         myDb.updateTitle(Integer.toString(data),newitem);
 
+                                        try {
+                                            if (firebaseAuth.getCurrentUser() != null) {
+                                                if (isNetworkAvailable() == false) {
+                                                    Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                                    snackbar.show();
+                                                } else {
+                                                    emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                                    emailfirebasenode = emailfirebasenode.replace(".", "");
+                                                    signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                                    if (!signinmethod.trim().equals("password")) {
+
+                                                    } else {
+                                                        emailfirebasenode = emailfirebasenode + "10125signincode";
+                                                    }
+
+                                                    final String mydata = data + justAlphaChars(olditem);
+                                                    System.out.println("all the itemidnames: " + mydata);
+
+                                                    mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(mydata);
+                                                    final int finalTempid = data;
+
+                                                    mref.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(DataSnapshot snapshot) {
+                                                            ArrayList<String> itemkey = new ArrayList<String>();
+                                                            for (DataSnapshot ds : snapshot.getChildren()) {
+                                                                String uid = ds.getKey();
+                                                                itemkey.add(uid);
+                                                            }
+                                                            String myitemkey = "";
+                                                            for (int i = 0; i < itemkey.size(); i++) {
+                                                                Object obj1 = snapshot.child(itemkey.get(i)).child("id").getValue();
+                                                                int id = -1;
+                                                                try {
+                                                                    id = Integer.parseInt(obj1.toString().trim());
+                                                                } catch (Exception e) {
+                                                                    e.printStackTrace();
+                                                                }
+                                                                if (id == finalTempid) {
+                                                                    myitemkey = itemkey.get(i);
+                                                                    break;
+                                                                }
+                                                            }
+                                                            //find better/faster solution
+                                                            if (!myitemkey.equals("")) {
+                                                                String thenewitem = finalTempid + justAlphaChars(newitem);
+                                                                String myitemkey2 = thenewitem + "item";
+                                                                System.out.println("the newitem is: " + thenewitem);
+                                                                DatabaseReference newmref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(thenewitem);
+                                                                DatabaseReference newmref2 = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(mydata);
+
+                                                                newmref.child(myitemkey2).setValue(new addFirebaseList(finalTempid, newitem, data2, data3, data5, data4));
+                                                                newmref2.removeValue();
+
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        }
+                                        catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
 
                                         // do what ever you want here
                                     } while (cursor1.moveToNext());
@@ -412,12 +642,9 @@ public class MainActivity extends AppCompatActivity {
 
                     builder.show();
 
-
-
-
-
-
                     break;
+
+
                 case R.id.delete:
                     Cursor cursor2 = null;
                     ArrayList<Integer> idarraylist = new ArrayList<>();
@@ -425,8 +652,92 @@ public class MainActivity extends AppCompatActivity {
                         cursor2 = myDb.getAllTitleRows(mtitle.get(posdelete.get(i)));
                         if (cursor2.moveToFirst()) {
                             do {
-                                int data = cursor2.getInt(cursor2.getColumnIndex("ID"));
-                                idarraylist.add(data);
+                                int data0 = cursor2.getInt(cursor2.getColumnIndex("ID"));
+                                final String data1 = cursor2.getString(cursor2.getColumnIndex("TITLE"));
+
+                                System.out.println("the ids are: " + data0);
+                                idarraylist.add(data0);
+
+
+                                try {
+                                    if (firebaseAuth.getCurrentUser() != null) {
+                                        if (isNetworkAvailable() == false) {
+                                            Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                            snackbar.show();
+                                        } else {
+                                            emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                            emailfirebasenode = emailfirebasenode.replace(".", "");
+                                            signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                            if (!signinmethod.trim().equals("password")) {
+
+                                            } else {
+                                                emailfirebasenode = emailfirebasenode + "10125signincode";
+                                            }
+                                            String mydata = data0 + justAlphaChars(data1);
+                                            mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(mydata);
+                                            mref.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot snapshot) {
+
+                                                    snapshot.getRef().removeValue();
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                }
+                                            });
+
+                                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference(emailfirebasenode);
+                                            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot snapshot) {
+                                                    ArrayList<String> itemkey = new ArrayList<String>();
+                                                    for (DataSnapshot ds : snapshot.getChildren()) {
+                                                        String uid = ds.getKey();
+                                                        if(!uid.trim().equals("email") && !uid.trim().equals("hashpassword") && !uid.trim().equals("id")) {
+                                                            itemkey.add(uid);
+                                                        }
+                                                        System.out.println("The whole uid: " + itemkey);
+
+                                                    }
+
+                                                    for(int i = 0; i < itemkey.size();i++) {
+                                                        Object obj1 = snapshot.child(itemkey.get(i)).child(itemkey.get(i)+"item").child("title").getValue();
+                                                        System.out.println("this is the val of obj1: " + obj1);
+                                                        String strobj = "";
+                                                        try {
+                                                            strobj = (String) obj1;
+
+
+                                                            if(strobj.equals(data1)) {
+                                                                DatabaseReference databaseReference3 = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(itemkey.get(i));
+                                                                databaseReference3.removeValue();
+
+                                                            }
+                                                        }
+                                                        catch (Exception e) {
+                                                            e.printStackTrace();
+                                                        }
+
+
+
+                                                    }
+
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                                catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
 
                                 // do what ever you want here
                             } while (cursor2.moveToNext());
@@ -435,6 +746,7 @@ public class MainActivity extends AppCompatActivity {
                     if (cursor2 != null) {
                         cursor2.close();
                     }
+
 
                     for(int i = 0; i < idarraylist.size();i++) {
 
@@ -474,11 +786,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                     break;
-
-
             }
-
-
             return true;
         }
 
@@ -490,5 +798,12 @@ public class MainActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
         }
     };
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert connectivityManager != null;
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
 }

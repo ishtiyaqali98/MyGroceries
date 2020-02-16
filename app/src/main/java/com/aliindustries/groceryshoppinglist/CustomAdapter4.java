@@ -1,7 +1,10 @@
 package com.aliindustries.groceryshoppinglist;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +14,23 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import static com.aliindustries.groceryshoppinglist.ItemActivity.maintitle;
+import static com.aliindustries.groceryshoppinglist.MainActivity.justAlphaChars;
 
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 public class CustomAdapter4 extends BaseAdapter implements Filterable {
 
@@ -27,16 +42,24 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
     private View view2;
     DatabaseHelper myDb;
     public static int uv_counter = 0;
+    Activity activity;
+    ArrayList<addFirebaseList> addFirebaseLists = new ArrayList<>();
+    int count2 = 0;
 
     ViewHolder viewHolder;
     boolean[] checkBoxState;
     String[] numberstate;
+    FirebaseAuth firebaseAuth;
+    String emailfirebasenode = "";
+    DatabaseReference mref;
+    String signinmethod = "";
 
 
-    public CustomAdapter4(Context context, List<String> data) {
+    public CustomAdapter4(Context context,Activity activity, List<String> data) {
         this.filteredData = data ;
         this.originalData = data ;
         this.context = context;
+        this.activity = activity;
         mInflater = LayoutInflater.from(context);
         checkBoxState=new boolean[data.size()];
         numberstate=new String[data.size()];
@@ -72,7 +95,8 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
     public View getView(final int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         myDb = DatabaseHelper.getInstance(context);
-
+        firebaseAuth = FirebaseAuth.getInstance();
+        mref = FirebaseDatabase.getInstance().getReference();
         if(convertView==null)
         {
             convertView=inflater.inflate(R.layout.list_items3, null);
@@ -106,6 +130,7 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
         viewHolder.checkBox.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
+
                 String itemdata = filteredData.get(position).replace("'", "");
                 if(((CheckBox)v).isChecked()) {
                     checkBoxState[position] = true;
@@ -114,12 +139,24 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
                         Cursor cursor = myDb.getQty_ID(maintitle,itemdata);
                         int qty = 1;
                         int id = 1;
+                        String pp_title = "";
+                        String pp_item = "";
+                        int pp_is_checked = 1;
+                        double pp_prices = 1;
                         if (cursor.moveToFirst()){
                             do{
                                 int data = cursor.getInt(cursor.getColumnIndex("QUANTITY"));
                                 int data2 = cursor.getInt(cursor.getColumnIndex("ID"));
+                                String data3 = cursor.getString(cursor.getColumnIndex("TITLE"));
+                                String data4 = cursor.getString(cursor.getColumnIndex("ITEM"));
+                                int data5 = cursor.getInt(cursor.getColumnIndex("ISCHECKED"));
+                                double data6 = cursor.getDouble(cursor.getColumnIndex("PRICE"));
                                 qty = data;
                                 id = data2;
+                                pp_title = data3;
+                                pp_item = data4;
+                                pp_is_checked = data5;
+                                pp_prices = data6;
                             }
                             while(cursor.moveToNext());
                         }
@@ -131,6 +168,32 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
 
                         if(b == true) {
                             Toast.makeText(context,itemdata + " * " + qty +" updated to " + maintitle + " shopping list",Toast.LENGTH_LONG).show();
+                            try {
+                                if (firebaseAuth.getCurrentUser() != null) {
+                                    if (isNetworkAvailable() == false) {
+                                        Snackbar snackbar = Snackbar.make(activity.findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                        snackbar.show();
+                                    } else {
+                                        emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                        emailfirebasenode = emailfirebasenode.replace(".", "");
+                                        signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                        if (!signinmethod.trim().equals("password")) {
+
+                                        } else {
+                                            emailfirebasenode = emailfirebasenode + "10125signincode";
+                                        }
+
+                                        FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(id + pp_title).child(id + pp_title + "item").child("qty").setValue(qty);
+
+                                    }
+                                }
+                            }
+                            catch (Exception e) {
+
+                            }
+
+
+
                         }
                         else {
                             Toast.makeText(context,"Error. Item not updated",Toast.LENGTH_LONG).show();
@@ -155,6 +218,68 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
                                 Toast.makeText(context,"Error. Item not added",Toast.LENGTH_LONG).show();
 
                             }
+                            try {
+                                if (firebaseAuth.getCurrentUser() != null) {
+                                    if (isNetworkAvailable() == false) {
+                                        Snackbar snackbar = Snackbar.make(activity.findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                        snackbar.show();
+                                    } else {
+                                        emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                        emailfirebasenode = emailfirebasenode.replace(".", "");
+                                        signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                        if (!signinmethod.trim().equals("password")) {
+
+                                        } else {
+                                            emailfirebasenode = emailfirebasenode + "10125signincode";
+                                        }
+                                        count2 = (int) myDb.getAllCount();
+                                        Cursor cursor2 = myDb.getAllData();
+                                        if (cursor2.moveToFirst()) {
+                                            do {
+                                                final int data0 = cursor2.getInt(cursor2.getColumnIndex("ID"));
+                                                final String data1 = cursor2.getString(cursor2.getColumnIndex("TITLE"));
+
+                                                final String data2 = cursor2.getString(cursor2.getColumnIndex("ITEM"));
+                                                final int data3 = cursor2.getInt(cursor2.getColumnIndex("ISCHECKED"));
+                                                final int data4 = cursor2.getInt(cursor2.getColumnIndex("QUANTITY"));
+                                                final double data5 = cursor2.getDouble(cursor2.getColumnIndex("PRICE"));
+
+                                                final String mydata = justAlphaChars(data1);
+                                                if (count2 > 0 && addFirebaseLists.size() <= count2) {
+                                                    addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5);
+                                                    addFirebaseLists.add(addFirebaseList);
+                                                }
+                                                mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode);
+                                                mref.addListenerForSingleValueEvent(new ValueEventListener() {
+
+                                                    @Override
+                                                    public void onDataChange(DataSnapshot snapshot) {
+                                                        addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5);
+                                                        int identifier1 = addFirebaseList.getID();
+                                                        if (snapshot.child(identifier1 + mydata).child(identifier1 + mydata + "item").hasChild(Integer.toString(identifier1))) {
+                                                        } else {
+                                                            int identifier2 = addFirebaseList.getID();
+                                                            mref.child(identifier2 + mydata).child(identifier2 + mydata + "item").setValue(addFirebaseList);
+
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                    }
+                                                });
+                                            } while (cursor2.moveToNext());
+                                        }
+                                        cursor2.close();
+
+                                    }
+                                }
+                            }
+                            catch (Exception e) {
+
+                            }
+
 
                         }
                         }
@@ -164,12 +289,26 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
                     Cursor cursor = myDb.getQty_ID(maintitle,itemdata);
                     int qty = 1;
                     int id = 1;
+                    String pp_title = "";
+                    String pp_item = "";
+                    int pp_is_checked = 1;
+                    double pp_prices = 1;
+
                     if (cursor.moveToFirst()){
                         do{
                             int data = cursor.getInt(cursor.getColumnIndex("QUANTITY"));
                             int data2 = cursor.getInt(cursor.getColumnIndex("ID"));
+                            String data3 = cursor.getString(cursor.getColumnIndex("TITLE"));
+                            String data4 = cursor.getString(cursor.getColumnIndex("ITEM"));
+                            int data5 = cursor.getInt(cursor.getColumnIndex("ISCHECKED"));
+                            double data6 = cursor.getDouble(cursor.getColumnIndex("PRICE"));
+
                             qty = data;
                             id = data2;
+                            pp_title = data3;
+                            pp_item = data4;
+                            pp_is_checked = data5;
+                            pp_prices = data6;
                         }
                         while(cursor.moveToNext());
                     }
@@ -179,8 +318,30 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
                     if(qty <= 0 ) {
                         uv_counter = 0;
                         myDb.deleteData(Integer.toString(id));
-                        Toast.makeText(context,"Item deleted!",Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "Item deleted!", Toast.LENGTH_LONG).show();
+                        try {
+                            if (firebaseAuth.getCurrentUser() != null) {
+                                if (isNetworkAvailable() == false) {
+                                    Snackbar snackbar = Snackbar.make(activity.findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                    snackbar.show();
+                                } else {
+                                    emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                    emailfirebasenode = emailfirebasenode.replace(".", "");
+                                    signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                    if (!signinmethod.trim().equals("password")) {
 
+                                    } else {
+                                        emailfirebasenode = emailfirebasenode + "10125signincode";
+                                    }
+
+                                    FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(id + pp_title).removeValue();
+
+                                }
+                            }
+                        }
+                        catch (Exception e ) {
+                            e.printStackTrace();
+                        }
                     }
                     else  {
                         uv_counter = 1;
@@ -188,14 +349,34 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
 
                         if(c == true) {
                             Toast.makeText(context,itemdata + " * " + qty +" updated to " + maintitle + " shopping list",Toast.LENGTH_LONG).show();
+                            try {
+                                if (firebaseAuth.getCurrentUser() != null) {
+                                    if (isNetworkAvailable() == false) {
+                                        Snackbar snackbar = Snackbar.make(activity.findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                        snackbar.show();
+                                    } else {
+                                        emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                        emailfirebasenode = emailfirebasenode.replace(".", "");
+                                        signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                        if (!signinmethod.trim().equals("password")) {
+
+                                        } else {
+                                            emailfirebasenode = emailfirebasenode + "10125signincode";
+                                        }
+                                        FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(id + pp_title).child(id + pp_title + "item").child("qty").setValue(qty);
+
+                                    }
+                                }
+                            }
+                            catch (Exception e) {
+
+                            }
+
                         }
                         else {
                             Toast.makeText(context,"Error. Item not updated",Toast.LENGTH_LONG).show();
-
                         }
                     }
-
-
                 }
             }
         });
@@ -262,5 +443,12 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
         value = value * factor;
         long tmp = Math.round(value);
         return (double) tmp / factor;
+    }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert connectivityManager != null;
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }

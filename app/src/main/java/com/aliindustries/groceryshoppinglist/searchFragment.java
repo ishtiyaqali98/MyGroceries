@@ -167,7 +167,7 @@ public class searchFragment extends Fragment implements  backPressed {
         });
 
 
-        adapter = new CustomAdapter4(getContext(),arrayList);
+        adapter = new CustomAdapter4(getContext(),getActivity(),arrayList);
 
 
         listView.setAdapter(adapter);
@@ -214,7 +214,6 @@ public class searchFragment extends Fragment implements  backPressed {
     }
 
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -253,7 +252,6 @@ public class searchFragment extends Fragment implements  backPressed {
 
 
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 

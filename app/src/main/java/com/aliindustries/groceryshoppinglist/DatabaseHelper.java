@@ -81,6 +81,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor res = db.rawQuery("select DISTINCT(TITLE) from "+TABLE_NAME,null);
         return res;
     }
+
     public Cursor getItem(String title, String itemidentifier) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("select ITEM from "+TABLE_NAME  + " where TITLE = '" + title +"' AND ITEM != '" + itemidentifier+"'",null);
@@ -103,6 +104,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public long getTitleCount() {
         SQLiteDatabase db = this.getReadableDatabase();
         SQLiteStatement s = db.compileStatement( "select count(DISTINCT TITLE) from " + TABLE_NAME);
+        long count = s.simpleQueryForLong();
+
+        return count;
+    }
+
+    public long getAllCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteStatement s = db.compileStatement( "select count(*) from " + TABLE_NAME);
         long count = s.simpleQueryForLong();
 
         return count;

@@ -33,4 +33,32 @@
         android:layout_height="wrap_content"
         android:text="@string/app_slogan" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="15dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/loginbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:textColor="@color/white"
+            android:paddingRight="25dp"
+            android:paddingLeft="25dp"
+            android:textSize="17dp"
+            android:text="Sign in" />
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:gravity="center_horizontal"
+            android:text="Access your list on any device" />
+    </LinearLayout>
+
 </LinearLayout>

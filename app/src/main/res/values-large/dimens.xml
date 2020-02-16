@@ -6,6 +6,7 @@
 
     <dimen name="edittextsize">26sp</dimen>
     <dimen name="edittextsizebtn">23sp</dimen>
+    <dimen name="minwidtheditext">393dp</dimen>
 
 
 </resources>

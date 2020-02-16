@@ -7,16 +7,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
+
 public class createList extends AppCompatActivity {
 
     EditText editText;
-   MaterialButton materialButton;
+   Button materialButton;
    DatabaseHelper myDb;
 
 
@@ -26,7 +28,7 @@ public class createList extends AppCompatActivity {
         setContentView(R.layout.activity_create_list);
 
         editText = (EditText) findViewById(R.id.edittext1);
-        materialButton = (MaterialButton) findViewById(R.id.submitbtn);
+        materialButton = (Button) findViewById(R.id.submitbtn);
         myDb = DatabaseHelper.getInstance(createList.this);
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -55,6 +57,7 @@ public class createList extends AppCompatActivity {
                     snackbar.show();
                 }
                 else {
+
                     Boolean a = myDb.insertData(v_title, getResources().getString(R.string.itemidentifier), 0, 0,0);
                     if (a == true) {
                         startActivity(new Intent(createList.this, MainActivity.class));

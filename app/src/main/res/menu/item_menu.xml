@@ -13,5 +13,9 @@
         android:orderInCategory="100"
         android:title="Change currency"
         app:showAsAction="never" />
-
+    <item
+        android:id="@+id/signout"
+        android:orderInCategory="100"
+        android:title="Sign in"
+        app:showAsAction="never" />
     </menu>

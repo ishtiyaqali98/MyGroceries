@@ -1,12 +1,18 @@
 package com.aliindustries.groceryshoppinglist;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Paint;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,7 +33,14 @@ import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 
+import com.aliindustries.groceryshoppinglist.ui.login.loginscreen;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
@@ -36,6 +49,7 @@ import java.util.Collections;
 import java.util.List;
 
 
+import static com.aliindustries.groceryshoppinglist.MainActivity.justAlphaChars;
 import static java.security.AccessController.getContext;
 
 import static com.aliindustries.groceryshoppinglist.CustomAdapter3.mc_currentcurrency;
@@ -48,8 +62,10 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
     ArrayList<Integer> qty;
     ArrayList<Double> price;
     int checkedItem = 4;
-
-
+    DatabaseReference mref;
+    FirebaseAuth firebaseAuth;
+    ArrayList<addFirebaseList> addFirebaseLists = new ArrayList<>();
+    private int count2 = 0;
     int count = 0;
     DatabaseHelper myDb;
     String newitem = "";
@@ -60,8 +76,10 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
     TextView textView;
     double total2 = 0;
     DecimalFormat decim = new DecimalFormat("0.00");
-
+    String signinmethod = "";
+    String emailfirebasenode = "";
     ArrayList<String> userSelection = new ArrayList<String>();
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     CustomAdapter3 customAdapter3;
 
@@ -72,11 +90,17 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
         Bundle extras = getIntent().getExtras();
         listView = (ListView) findViewById(R.id.listview2);
         noitemlayout = (LinearLayout) findViewById(R.id.lin5);
+        firebaseAuth = FirebaseAuth.getInstance();
+        mref = FirebaseDatabase.getInstance().getReference();
         textView = findViewById(R.id.textView6);
         myDb = DatabaseHelper.getInstance(ItemActivity.this);
+
+
+
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.ic_launcher_background));
         }
+
         setTitle("My new title");
         if (extras != null) {
             maintitle = extras.getString("c_title");
@@ -146,6 +170,20 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
             cursor2.close();
         }
 
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
+                if(firebaseAuth.getCurrentUser() != null &&  firebaseAuth.getCurrentUser().isEmailVerified()) {
+                }
+                else {
+
+                }
+
+            }
+        };
+
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -173,6 +211,48 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                 if (k == 0) {
                     k = k + 1;
                     myDb.updateIsChecked(Integer.toString(tempid), k);
+
+                    try {
+                        if (firebaseAuth.getCurrentUser() != null) {
+                            if (isNetworkAvailable() == false) {
+                                Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                snackbar.show();
+                            } else {
+                                emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                emailfirebasenode = emailfirebasenode.replace(".", "");
+                                signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                if (!signinmethod.trim().equals("password")) {
+
+                                } else {
+                                    emailfirebasenode = emailfirebasenode + "10125signincode";
+                                }
+                                final String tmpmaintitle = tempid + justAlphaChars(maintitle);
+                                System.out.println("the maintitle of they: " + tmpmaintitle);
+                                mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle);
+                                final int finalTempid = tempid;
+                                final int finalK = k;
+                                mref.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot snapshot) {
+                                        String myitemkey = tmpmaintitle + "item";
+                                        if (!myitemkey.equals("")) {
+                                            System.out.println("this is the val of emailnode: " + emailfirebasenode);
+                                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle).child(myitemkey).child("isChecked");
+                                            databaseReference.setValue(finalK);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                     titletextview.setPaintFlags(titletextview.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                     subtitletextview.setPaintFlags(subtitletextview.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                     subprice.setPaintFlags(subprice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
@@ -201,6 +281,46 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                 } else if (k == 1) {
                     k = k - 1;
                     myDb.updateIsChecked(Integer.toString(tempid), k);
+                    try {
+                        if (firebaseAuth.getCurrentUser() != null) {
+                            if (isNetworkAvailable() == false) {
+                                Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                snackbar.show();
+                            } else {
+                                emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                emailfirebasenode = emailfirebasenode.replace(".", "");
+                                signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                if (firebaseAuth.getCurrentUser() != null) {
+
+                                } else {
+                                    emailfirebasenode = emailfirebasenode + "10125signincode";
+                                }
+                                final String tmpmaintitle = tempid + justAlphaChars(maintitle);
+
+                                mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle);
+                                final int finalTempid = tempid;
+                                final int finalK = k;
+                                mref.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot snapshot) {
+                                        String myitemkey = tmpmaintitle + "item";
+                                        if (!myitemkey.equals("")) {
+                                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle).child(myitemkey).child("isChecked");
+                                            databaseReference.setValue(finalK);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                     titletextview.setPaintFlags(titletextview.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
                     subtitletextview.setPaintFlags(subtitletextview.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
                     subprice.setPaintFlags(subprice.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
@@ -274,7 +394,17 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.item_menu, menu);
+        MenuItem item = menu.findItem(R.id.signout);
+
+        if(firebaseAuth.getCurrentUser() != null &&  firebaseAuth.getCurrentUser().isEmailVerified()) {
+            item.setTitle("Sign out");
+        }
+        else {
+            item.setTitle("Sign in");
+
+        }
         return super.onCreateOptionsMenu(menu);
+
     }
     static double sum(ArrayList<Double> arr)
     {
@@ -379,6 +509,8 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                                 dialog.dismiss();
                                 customAdapter3.notifyDataSetChanged();
                                 break;
+
+
                         }
                     }
                 });
@@ -387,6 +519,22 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
 
                 alert.show();
                 break;
+
+            case R.id.signout:
+
+                if(item.getTitle().toString().trim().equals("Sign in")) {
+                    startActivity(new Intent(ItemActivity.this, loginscreen.class));
+                }
+                else {
+                    FirebaseAuth.getInstance().signOut();
+                    item.setTitle("Sign in");
+
+                }
+
+
+
+                break;
+
             default:
                 return false;
         }
@@ -506,6 +654,63 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                                     do {
                                         int data = cursor1.getInt(cursor1.getColumnIndex("ID"));
                                         myDb.updatePrice(Integer.toString(data),dd_price,0);
+                                        try {
+                                            if (firebaseAuth.getCurrentUser() != null) {
+                                                if (isNetworkAvailable() == false) {
+                                                    Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                                    snackbar.show();
+                                                } else {
+                                                    emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                                    emailfirebasenode = emailfirebasenode.replace(".", "");
+                                                    signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                                    if (firebaseAuth.getCurrentUser() != null) {
+
+                                                    } else {
+                                                        emailfirebasenode = emailfirebasenode + "10125signincode";
+                                                    }
+                                                    String tmpmaintitle = data + justAlphaChars(maintitle);
+                                                    mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle);
+                                                    final int finalTempid = data;
+                                                    final double finalprice = dd_price;
+                                                    mref.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(DataSnapshot snapshot) {
+                                                            ArrayList<String> itemkey = new ArrayList<String>();
+                                                            for (DataSnapshot ds : snapshot.getChildren()) {
+                                                                String uid = ds.getKey();
+                                                                itemkey.add(uid);
+                                                            }
+                                                            String myitemkey = "";
+                                                            for (int i = 0; i < itemkey.size(); i++) {
+                                                                Object obj1 = snapshot.child(itemkey.get(i)).child("id").getValue();
+                                                                int id = -1;
+                                                                try {
+                                                                    id = Integer.parseInt(obj1.toString().trim());
+                                                                } catch (Exception e) {
+                                                                    e.printStackTrace();
+                                                                }
+                                                                if (id == finalTempid) {
+                                                                    myitemkey = itemkey.get(i);
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (!myitemkey.equals("")) {
+
+                                                                snapshot.getRef().child(myitemkey).child("price").setValue(finalprice);
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        }
+                                        catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
 
                                         // do what ever you want here
                                     } while (cursor1.moveToNext());
@@ -608,6 +813,72 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                                             do {
                                                 int data = cursor1.getInt(cursor1.getColumnIndex("ID"));
                                                 myDb.updateData(Integer.toString(data), maintitle, newitem, 0, newquantity);
+                                                try {
+                                                    if (firebaseAuth.getCurrentUser() != null) {
+                                                        if (isNetworkAvailable() == false) {
+                                                            Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                                            snackbar.show();
+                                                        } else {
+                                                            emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                                            emailfirebasenode = emailfirebasenode.replace(".", "");
+                                                            signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                                            if (firebaseAuth.getCurrentUser() != null) {
+
+                                                            } else {
+                                                                emailfirebasenode = emailfirebasenode + "10125signincode";
+                                                            }
+                                                            String tmpmaintitle = data + justAlphaChars(maintitle);
+                                                            mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle);
+                                                            mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle);
+                                                            final int finalTempid = data;
+                                                            final String vb_title = maintitle;
+                                                            final String newestitem = newitem;
+                                                            final int finalischecked = 0;
+                                                            final int finalqty = newquantity;
+
+                                                            mref.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                @Override
+                                                                public void onDataChange(DataSnapshot snapshot) {
+                                                                    ArrayList<String> itemkey = new ArrayList<String>();
+                                                                    for (DataSnapshot ds : snapshot.getChildren()) {
+                                                                        String uid = ds.getKey();
+                                                                        itemkey.add(uid);
+                                                                    }
+                                                                    String myitemkey = "";
+                                                                    for (int i = 0; i < itemkey.size(); i++) {
+                                                                        Object obj1 = snapshot.child(itemkey.get(i)).child("id").getValue();
+                                                                        int id = -1;
+                                                                        try {
+                                                                            id = Integer.parseInt(obj1.toString().trim());
+                                                                        } catch (Exception e) {
+                                                                            e.printStackTrace();
+                                                                        }
+                                                                        if (id == finalTempid) {
+                                                                            myitemkey = itemkey.get(i);
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    if (!myitemkey.equals("")) {
+
+                                                                        snapshot.getRef().child(myitemkey).child("title").setValue(vb_title);
+                                                                        snapshot.getRef().child(myitemkey).child("item").setValue(newestitem);
+                                                                        snapshot.getRef().child(myitemkey).child("isChecked").setValue(finalischecked);
+                                                                        snapshot.getRef().child(myitemkey).child("qty").setValue(finalqty);
+
+                                                                    }
+                                                                }
+
+                                                                @Override
+                                                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                                catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
 
                                                 // do what ever you want here
                                             } while (cursor1.moveToNext());
@@ -703,7 +974,7 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                 case R.id.delete:
 
                     Cursor cursor2 = null;
-                    ArrayList<Integer> idarraylist = new ArrayList<>();
+                    final ArrayList<Integer> idarraylist = new ArrayList<>();
                     for (int i = 0; i < posdelete.size(); i++) {
                         cursor2 = myDb.getQty_ID(maintitle, o_item.get(posdelete.get(i)));
                         if (cursor2.moveToFirst()) {
@@ -722,8 +993,69 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                     for (int i = 0; i < idarraylist.size(); i++) {
 
                         myDb.deleteData(Integer.toString(idarraylist.get(i)));
-
                     }
+                        try {
+                            if (firebaseAuth.getCurrentUser() != null) {
+                                if (isNetworkAvailable() == false) {
+                                    Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
+                                    snackbar.show();
+                                } else {
+                                    emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                                    emailfirebasenode = emailfirebasenode.replace(".", "");
+                                    signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                                    if (firebaseAuth.getCurrentUser() != null) {
+
+                                    } else {
+                                        emailfirebasenode = emailfirebasenode + "10125signincode";
+                                    }
+                                    for (int i = 0; i < idarraylist.size(); i++) {
+                                        String tmpmaintitle = idarraylist.get(i) + justAlphaChars(maintitle);
+                                        mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle);
+                                        mref.addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot snapshot) {
+                                                ArrayList<String> itemkey = new ArrayList<String>();
+                                                for (DataSnapshot ds : snapshot.getChildren()) {
+                                                    String uid = ds.getKey();
+                                                    itemkey.add(uid);
+                                                }
+                                                String myitemkey = "";
+                                                int tempcoutner = 0;
+                                                for (int i = 0; i < itemkey.size(); i++) {
+                                                    Object obj1 = snapshot.child(itemkey.get(i)).child("id").getValue();
+                                                    int id = -1;
+                                                    try {
+                                                        id = Integer.parseInt(obj1.toString().trim());
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    if (tempcoutner < idarraylist.size()) {
+                                                        if (id == idarraylist.get(tempcoutner)) {
+                                                            myitemkey = itemkey.get(i);
+                                                            snapshot.getRef().child(myitemkey).removeValue();
+                                                            tempcoutner++;
+                                                            i = 0;
+
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+
                     count = (int) myDb.getItemCount(maintitle, getResources().getString(R.string.itemidentifier));
 
                     if(count<=0) {
@@ -796,4 +1128,31 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
         long tmp = Math.round(value);
         return (double) tmp / factor;
     }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert connectivityManager != null;
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if(newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+
+            finish();
+            overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
+            startActivity(getIntent());
+            overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
+        }
+        else {
+            finish();
+            overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
+            startActivity(getIntent());
+            overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
+        }
+    }
+
 }
