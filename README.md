@@ -1,4 +1,4 @@
-<img align="left" width="80" height="80" src="https://github.com/ish2nv/islamic_calendar/blob/master/logoimg/hijriimg.png" alt="Logo">
+<img align="left" width="80" height="80" src="https://github.com/ish2nv/MyGroceries/blob/master/logoimg/groceryicon.jpg" alt="Logo">
 
 # MyGroceries
 
