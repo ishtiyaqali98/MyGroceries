@@ -2,21 +2,27 @@
 
 # MyGroceries
 
-This lightweight app uses an algorithmic approach to accurately calculate past, present and future islamic dates. It searches for when significant islamic events will take place and what date it will be held in Gregorian and Hijri format. The app will notify users when their is an important event.
+MyGroceries intends to allow users to create fast lists without too much user input. This is because most shoppers tend to create a grocery list the minute before they enter the store, so this app has been created so the process is quick and is done before they even enter. It does not require an Internet connection, so this app can be used in remote locations.
 
 ## Goal
 
-* Convert gregorian calendar dates to the lunar calendar muslims follow
-    - Gregorian and hijri date should be shown together
-    - Current date in both formats should be displayed clearly
-    - Create an algorithm, so users can view any dates in the past and future in gregorian and hijri date format
-    
-* Allow users to create a reminder that they can set from current to future dates
-    - Notify users an hour before the reminder was set
-    
-* Notify users daily of the current date in gregorian and hijri format
+* Create a activity that displays all lists
+    - Use SQLite to store all created lists
+    - Display a progress bar that shows how many items in the grocery list have been checked by the user
+    - Allow users to update or delete lists
 
-* Allow users to search for all islamic events taking place this year
+* Create a activity that displays all items of a specific list
+    - Add a search function, so users can instantly add item of their choice
+    - Add a currency feature, so users around the world can change currency to their own
+    - Allow users to update or delete items
+    
+* Create a login activity that allows users to stores lists in a private database server
+    - Use firebase to achieve this
+    - Display all lists from the database when user logs in
+    - Allow users to update or delete items
+    
+    
+
 
 
 <p align="center">
