@@ -25,9 +25,11 @@ import com.google.firebase.database.ValueEventListener;
 
 import static com.aliindustries.groceryshoppinglist.ItemActivity.maintitle;
 import static com.aliindustries.groceryshoppinglist.MainActivity.justAlphaChars;
+import static com.aliindustries.groceryshoppinglist.createList.getMonthName_Abbr;
 
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -209,7 +211,23 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
                         }
                         else {
                             uv_counter = 1;
-                            Boolean a = myDb.insertData(maintitle, itemdata, 0, 1,round(0.00,2));
+                            Calendar calendar = Calendar.getInstance();
+                            String date_created = calendar.getTime().toString();
+                            calendar.set(Calendar.DAY_OF_WEEK,Calendar.SUNDAY);
+                            calendar.set(Calendar.HOUR_OF_DAY,0);
+                            calendar.set(Calendar.MINUTE,0);
+                            calendar.set(Calendar.SECOND,0);
+                            calendar.set(Calendar.DAY_OF_MONTH,calendar.get(Calendar.DAY_OF_MONTH)-6);
+                            int k2 = calendar.get(Calendar.DAY_OF_MONTH);
+                            String k3 = getMonthName_Abbr(calendar.get(Calendar.MONTH));
+                            calendar.set(Calendar.DAY_OF_MONTH,calendar.get(Calendar.DAY_OF_MONTH)+6);
+                            int yr = calendar.get(Calendar.YEAR);
+                            String monthnameabbr = getMonthName_Abbr(calendar.get(Calendar.MONTH)) + " " + yr;
+
+                            String s2 = k2 + " " + k3 + " - " + calendar.get(Calendar.DAY_OF_MONTH) + " " + getMonthName_Abbr(calendar.get(Calendar.MONTH)) + " " + yr;
+
+
+                            Boolean a = myDb.insertData(maintitle, itemdata, 0, 1,round(0.00,2),s2,monthnameabbr,yr,calendar.getTimeInMillis(),date_created);
 
                             if(a == true) {
                                 Toast.makeText(context,itemdata + " * 1 added to " + maintitle + " shopping list",Toast.LENGTH_LONG).show();
@@ -243,10 +261,15 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
                                                 final int data3 = cursor2.getInt(cursor2.getColumnIndex("ISCHECKED"));
                                                 final int data4 = cursor2.getInt(cursor2.getColumnIndex("QUANTITY"));
                                                 final double data5 = cursor2.getDouble(cursor2.getColumnIndex("PRICE"));
+                                                final String data6 = cursor2.getString(cursor2.getColumnIndex("WEEK"));
+                                                final String data7 = cursor2.getString(cursor2.getColumnIndex("MONTH"));
+                                                final int data8 = cursor2.getInt(cursor2.getColumnIndex("YEAR"));
+                                                final long data9 = cursor2.getLong(cursor2.getColumnIndex("DATEINMS"));
+                                                final String data10 = cursor2.getString(cursor2.getColumnIndex("DATECREATED"));
 
                                                 final String mydata = justAlphaChars(data1);
                                                 if (count2 > 0 && addFirebaseLists.size() <= count2) {
-                                                    addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5);
+                                                    addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5,data6,data7,data8,data9,data10);
                                                     addFirebaseLists.add(addFirebaseList);
                                                 }
                                                 mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode);
@@ -254,7 +277,7 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
 
                                                     @Override
                                                     public void onDataChange(DataSnapshot snapshot) {
-                                                        addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5);
+                                                        addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5,data6,data7,data8,data9,data10);
                                                         int identifier1 = addFirebaseList.getID();
                                                         if (snapshot.child(identifier1 + mydata).child(identifier1 + mydata + "item").hasChild(Integer.toString(identifier1))) {
                                                         } else {

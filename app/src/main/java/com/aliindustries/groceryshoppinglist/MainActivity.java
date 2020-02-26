@@ -1,6 +1,5 @@
 package com.aliindustries.groceryshoppinglist;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,15 +10,10 @@ import android.os.Build;
 import android.os.Bundle;
 
 import com.aliindustries.groceryshoppinglist.ui.login.loginscreen;
-import com.aliindustries.groceryshoppinglist.ui.login.loginscreen;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import android.os.CountDownTimer;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -68,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
     DatabaseReference mref;
     ArrayList<addFirebaseList> addFirebaseLists = new ArrayList<>();
 
-    String datachecker = "";
+
+    ArrayList<String> datecreated;
 
     ArrayList<String> mtitle;
     ArrayList<Integer> progress;
@@ -105,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this,createList.class));
+                startActivity(new Intent(MainActivity.this, createList.class));
                 overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down);
             }
         });
@@ -114,79 +109,6 @@ public class MainActivity extends AppCompatActivity {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.ic_launcher_background));
         }
-
-        try {
-            if(firebaseAuth.getCurrentUser() != null) {
-                if (isNetworkAvailable() == false) {
-                    Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Internet connection is required when signing in!", Snackbar.LENGTH_LONG);
-                    snackbar.show();
-                } else {
-                    emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
-                    emailfirebasenode = emailfirebasenode.replace(".", "");
-                    signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
-                    if (firebaseAuth.getCurrentUser() != null) {
-                        if (!signinmethod.trim().equals("password")) {
-
-                        } else {
-                            emailfirebasenode = emailfirebasenode + "10125signincode";
-                        }
-                        count2 = (int) myDb.getAllCount();
-                        Cursor cursor2 = myDb.getAllData();
-                        if (cursor2.moveToFirst()) {
-                            do {
-                                int data0 = cursor2.getInt(cursor2.getColumnIndex("ID"));
-                                final String data1 = cursor2.getString(cursor2.getColumnIndex("TITLE"));
-
-                                String data2 = cursor2.getString(cursor2.getColumnIndex("ITEM"));
-                                int data3 = cursor2.getInt(cursor2.getColumnIndex("ISCHECKED"));
-                                int data4 = cursor2.getInt(cursor2.getColumnIndex("QUANTITY"));
-                                double data5 = cursor2.getDouble(cursor2.getColumnIndex("PRICE"));
-
-                                final String mydata = justAlphaChars(data1);
-                                if (count2 > 0 && addFirebaseLists.size() <= count2) {
-                                    addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5);
-                                    addFirebaseLists.add(addFirebaseList);
-                                }
-
-                                mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode);
-
-                                mref.addListenerForSingleValueEvent(new ValueEventListener() {
-
-                                    @Override
-                                    public void onDataChange(DataSnapshot snapshot) {
-                                        for (int i = 0; i < addFirebaseLists.size(); i++) {
-                                            int identifier1 = addFirebaseLists.get(i).getID();
-                                            if (snapshot.child(identifier1 + mydata).child(identifier1 + mydata + "item").hasChild(Integer.toString(addFirebaseLists.get(i).getID()))) {
-                                            } else {
-                                                if (addFirebaseLists.get(i).getTitle().trim().equals(data1)) {
-                                                    int identifier2 = addFirebaseLists.get(i).getID();
-                                                    mref.child(identifier2 + mydata).child(identifier2 + mydata + "item").setValue(addFirebaseLists.get(i));
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                                    }
-                                });
-                                // do what ever you want here
-
-                            } while (cursor2.moveToNext());
-                        }
-                        cursor2.close();
-
-
-                    }
-                }
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         final NavigationView navigationView = findViewById(R.id.nav_view);
@@ -201,12 +123,11 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
 
         count = (int) myDb.getTitleCount();
-        System.out.println("the title count is: " + count);
         int counter = 0;
         mtitle = new ArrayList<String>();
         progress = new ArrayList<Integer>();
         progresstxt = new ArrayList<String>();
-
+        datecreated = new ArrayList<>();
 
         navigationView.bringToFront();
 
@@ -215,16 +136,35 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
 
+                    case R.id.nav_notify: {
+
+                        startActivity(new Intent(MainActivity.this, notificationactivity.class));
+                        overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
+                        break;
+                    }
+                    case R.id.spent: {
+                        int counts = (int) myDb.getTitleCount();
+
+                        if (counts > 0) {
+                            startActivity(new Intent(MainActivity.this, moneyspentactivity.class));
+                            overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
+                        } else {
+                            Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Create a list!", Snackbar.LENGTH_LONG);
+                            snackbar.show();
+
+                        }
+                        break;
+                    }
                     case R.id.nav_share: {
                         try {
                             Intent shareIntent = new Intent(Intent.ACTION_SEND);
                             shareIntent.setType("text/plain");
                             shareIntent.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name));
-                            String shareMessage= "\nLet me recommend you this application\n\n";
-                            shareMessage = shareMessage + "https://play.google.com/store/apps/details?id=" + BuildConfig.APPLICATION_ID +"\n\n";
+                            String shareMessage = "\nLet me recommend you this application\n\n";
+                            shareMessage = shareMessage + "https://play.google.com/store/apps/details?id=" + BuildConfig.APPLICATION_ID + "\n\n";
                             shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
                             startActivity(Intent.createChooser(shareIntent, "choose one"));
-                        } catch(Exception e) {
+                        } catch (Exception e) {
                             //e.toString();
                         }
                         break;
@@ -241,17 +181,17 @@ public class MainActivity extends AppCompatActivity {
 
         login.setOnClickListener(new View.OnClickListener() {
             private long mLastClickTime = 0;
+
             @Override
             public void onClick(View v) {
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
                     return;
                 }
                 mLastClickTime = SystemClock.elapsedRealtime();
 
-                if(login.getText().toString().trim().equals("Sign in")) {
+                if (login.getText().toString().trim().equals("Sign in")) {
                     startActivity(new Intent(MainActivity.this, loginscreen.class));
-                }
-                else {
+                } else {
                     FirebaseAuth.getInstance().signOut();
                 }
 
@@ -264,15 +204,14 @@ public class MainActivity extends AppCompatActivity {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
 
 
-                if(firebaseAuth.getCurrentUser() != null &&  firebaseAuth.getCurrentUser().isEmailVerified()) {
+                if (firebaseAuth.getCurrentUser() != null && firebaseAuth.getCurrentUser().isEmailVerified()) {
                     login.setText("Sign in");
 
                     login.setText("Sign out");
                     Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Signed in!", Snackbar.LENGTH_LONG);
                     snackbar.show();
 
-                }
-                else {
+                } else {
                     login.setText("Sign in");
 
                 }
@@ -281,32 +220,34 @@ public class MainActivity extends AppCompatActivity {
         };
 
 
-
-
-        if(count <= 0) {
+        if (count <= 0) {
 
             nolistlayout.setVisibility(View.VISIBLE);
             resultsListView.setVisibility(View.GONE);
-        }
-        else {
+        } else {
             nolistlayout.setVisibility(View.GONE);
             resultsListView.setVisibility(View.VISIBLE);
         }
 
 
-        Cursor cursor1 = myDb.getTitle();
+        String identifier = getResources().getString(R.string.itemidentifier);
+
+        Cursor cursor1 = myDb.getTitle(identifier);
 
 
-        if (cursor1.moveToFirst()){
-            do{
+        if (cursor1.moveToFirst()) {
+            do {
                 String data = cursor1.getString(cursor1.getColumnIndex("TITLE"));
-                if(counter < count) {
+                String data2 = cursor1.getString(cursor1.getColumnIndex("DATECREATED"));
+
+                if (counter < count) {
                     mtitle.add(data);
+                    datecreated.add(data2);
                     counter++;
                 }
 
                 // do what ever you want here
-            }while(cursor1.moveToNext());
+            } while (cursor1.moveToNext());
         }
         cursor1.close();
 
@@ -314,29 +255,27 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(mtitle);
 
 
-        for(int i = 0; i < mtitle.size();i++) {
+        for (int i = 0; i < mtitle.size(); i++) {
 
-            int k = (int) myDb.getIsCheckedCount(mtitle.get(i),1,getResources().getString(R.string.itemidentifier));
-            int z = (int) myDb.getItemCount(mtitle.get(i),getResources().getString(R.string.itemidentifier));
+            int k = (int) myDb.getIsCheckedCount(mtitle.get(i), 1, getResources().getString(R.string.itemidentifier));
+            int z = (int) myDb.getItemCount(mtitle.get(i), getResources().getString(R.string.itemidentifier));
             ischeckedcount.add(k);
             totalitemcount.add(z);
 
         }
 
 
-
         resultsListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
         resultsListView.setMultiChoiceModeListener(modeListener);
 
-        for(int i = 0; i < count;i++) {
+        for (int i = 0; i < count; i++) {
 
-            if(totalitemcount.get(i) != 0) {
-                double zx = ((double)ischeckedcount.get(i) / (double)totalitemcount.get(i)) * (double)100;
+            if (totalitemcount.get(i) != 0) {
+                double zx = ((double) ischeckedcount.get(i) / (double) totalitemcount.get(i)) * (double) 100;
                 int n = (int) Math.ceil(zx);
 
                 progress.add(n);
-            }
-            else {
+            } else {
                 progress.add(0);
             }
 
@@ -344,18 +283,19 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        adapter = new CustomAdapter2(this,  mtitle,progress, progresstxt);
+        adapter = new CustomAdapter2(this, mtitle, progress, progresstxt, datecreated);
         resultsListView.setAdapter(adapter);
 
         resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             private long mLastClickTime = 0;
+
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
                     return;
                 }
                 mLastClickTime = SystemClock.elapsedRealtime();
-                Intent i = new Intent(MainActivity.this,ItemActivity.class);
+                Intent i = new Intent(MainActivity.this, ItemActivity.class);
                 i.putExtra("c_title", mtitle.get(position));
 
                 startActivity(i);
@@ -363,6 +303,95 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+
+        if (firebaseAuth.getCurrentUser() != null && firebaseAuth.getCurrentUser().isEmailVerified()) {
+            try {
+                emailfirebasenode = firebaseAuth.getCurrentUser().getEmail();
+                emailfirebasenode = emailfirebasenode.replace(".", "");
+                signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+                if (!signinmethod.trim().equals("password")) {
+
+                } else {
+                    emailfirebasenode = emailfirebasenode + "10125signincode";
+                }
+                String emaileditextstring = emailfirebasenode;
+                String signedinemailaddress = "";
+                signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
+
+                if (!signinmethod.trim().equals("password")) {
+                    signedinemailaddress = emaileditextstring;
+                } else {
+                    signedinemailaddress = emaileditextstring + "10125signincode";
+                }
+
+                count2 = (int) myDb.getAllCount();
+                Cursor cursor2 = myDb.getAllData();
+                if (cursor2.moveToFirst()) {
+                    do {
+                        int data0 = cursor2.getInt(cursor2.getColumnIndex("ID"));
+                        final String data1 = cursor2.getString(cursor2.getColumnIndex("TITLE"));
+                        String data2 = cursor2.getString(cursor2.getColumnIndex("ITEM"));
+                        int data3 = cursor2.getInt(cursor2.getColumnIndex("ISCHECKED"));
+                        int data4 = cursor2.getInt(cursor2.getColumnIndex("QUANTITY"));
+                        double data5 = cursor2.getDouble(cursor2.getColumnIndex("PRICE"));
+                        String data6 = cursor2.getString(cursor2.getColumnIndex("WEEK"));
+                        String data7 = cursor2.getString(cursor2.getColumnIndex("MONTH"));
+                        int data8 = cursor2.getInt(cursor2.getColumnIndex("YEAR"));
+                        long data9 = cursor2.getLong(cursor2.getColumnIndex("DATEINMS"));
+                        String data10 = cursor2.getString(cursor2.getColumnIndex("DATECREATED"));
+
+
+                        if (count2 > 0 && addFirebaseLists.size() <= count2) {
+                            addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5, data6, data7, data8, data9, data10);
+
+                            addFirebaseLists.add(addFirebaseList);
+                        }
+
+                        mref = FirebaseDatabase.getInstance().getReference(signedinemailaddress);
+                        mref.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                for (DataSnapshot ds : snapshot.getChildren()) {
+                                    String uid = ds.getKey();
+                                    if(!uid.trim().equals("hashpassword") && !uid.trim().equals("id") && !uid.trim().equals("email")) {
+                                        snapshot.child(uid).getRef().removeValue();
+                                    }
+                                }
+                                if (addFirebaseLists.size() > 0) {
+                                    for (int i = 0; i < addFirebaseLists.size(); i++) {
+                                        int identifier1 = addFirebaseLists.get(i).getID();
+                                        String thedata1 = addFirebaseLists.get(i).getTitle();
+
+                                        if (snapshot.child(identifier1 + thedata1).child(identifier1 + thedata1 + "item").hasChild(Integer.toString(addFirebaseLists.get(i).getID()))) {
+                                        } else {
+
+
+
+
+                                            int identifier2 = addFirebaseLists.get(i).getID();
+                                            mref.child(identifier2 + thedata1).child(identifier2 + thedata1 + "item").setValue(addFirebaseLists.get(i));
+                                        }
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                        // do what ever you want here
+                    } while (cursor2.moveToNext());
+                }
+                cursor2.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+        }
     }
     public static String justAlphaChars(String text) {
 
@@ -536,7 +565,11 @@ public class MainActivity extends AppCompatActivity {
                                         final int data3 = cursor1.getInt(cursor1.getColumnIndex("ISCHECKED"));
                                         final double data4 = cursor1.getDouble(cursor1.getColumnIndex("PRICE"));
                                         final int data5 = cursor1.getInt(cursor1.getColumnIndex("QUANTITY"));
-
+                                        final String data6 = cursor1.getString(cursor1.getColumnIndex("WEEK"));
+                                        final String data7 = cursor1.getString(cursor1.getColumnIndex("MONTH"));
+                                        final int data8 = cursor1.getInt(cursor1.getColumnIndex("YEAR"));
+                                        final long data9 = cursor1.getLong(cursor1.getColumnIndex("DATEINMS"));
+                                        final String data10 = cursor1.getString(cursor1.getColumnIndex("DATECREATED"));
                                         myDb.updateTitle(Integer.toString(data),newitem);
 
                                         try {
@@ -590,7 +623,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 DatabaseReference newmref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(thenewitem);
                                                                 DatabaseReference newmref2 = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(mydata);
 
-                                                                newmref.child(myitemkey2).setValue(new addFirebaseList(finalTempid, newitem, data2, data3, data5, data4));
+                                                                newmref.child(myitemkey2).setValue(new addFirebaseList(finalTempid, newitem, data2, data3, data5, data4,data6,data7,data8,data9,data10));
                                                                 newmref2.removeValue();
 
                                                             }

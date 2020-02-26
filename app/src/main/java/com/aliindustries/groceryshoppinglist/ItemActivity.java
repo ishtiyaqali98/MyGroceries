@@ -1008,37 +1008,20 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
                                     } else {
                                         emailfirebasenode = emailfirebasenode + "10125signincode";
                                     }
-                                    for (int i = 0; i < idarraylist.size(); i++) {
-                                        String tmpmaintitle = idarraylist.get(i) + justAlphaChars(maintitle);
-                                        mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle);
+
+                                        mref = FirebaseDatabase.getInstance().getReference(emailfirebasenode);
                                         mref.addListenerForSingleValueEvent(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(DataSnapshot snapshot) {
-                                                ArrayList<String> itemkey = new ArrayList<String>();
-                                                for (DataSnapshot ds : snapshot.getChildren()) {
-                                                    String uid = ds.getKey();
-                                                    itemkey.add(uid);
-                                                }
-                                                String myitemkey = "";
-                                                int tempcoutner = 0;
-                                                for (int i = 0; i < itemkey.size(); i++) {
-                                                    Object obj1 = snapshot.child(itemkey.get(i)).child("id").getValue();
-                                                    int id = -1;
-                                                    try {
-                                                        id = Integer.parseInt(obj1.toString().trim());
-                                                    } catch (Exception e) {
-                                                        e.printStackTrace();
-                                                    }
+                                                for (int i = 0; i < idarraylist.size(); i++) {
+                                                    final String tmpmaintitle = idarraylist.get(i) + justAlphaChars(maintitle);
 
-                                                    if (tempcoutner < idarraylist.size()) {
-                                                        if (id == idarraylist.get(tempcoutner)) {
-                                                            myitemkey = itemkey.get(i);
-                                                            snapshot.getRef().child(myitemkey).removeValue();
-                                                            tempcoutner++;
-                                                            i = 0;
 
-                                                        }
-                                                    }
+
+                                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference(emailfirebasenode).child(tmpmaintitle);
+
+                                                    databaseReference.removeValue();
+
                                                 }
                                             }
 
@@ -1047,7 +1030,6 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
 
                                             }
                                         });
-                                    }
                                 }
                             }
                         }

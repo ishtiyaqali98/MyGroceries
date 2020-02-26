@@ -193,7 +193,8 @@ public class createaccount extends AppCompatActivity {
                                                 myRef.child(emailaddress2).setValue(account);
 
                                                 startActivity(new Intent(createaccount.this,loginscreen.class));
-
+                                                finish();
+                                                overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down);
                                             }else{
                                                 Toast.makeText(createaccount.this,  task.getException().getMessage(),
                                                         Toast.LENGTH_LONG).show();

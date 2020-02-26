@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 
+import java.text.DecimalFormat;
+
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "grocerylist.db";
@@ -18,6 +20,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_4 = "ischecked";
     public static final String COL_5 = "quantity";
     public static final String COL_6 = "price";
+    public static final String COL_7 = "week";
+    public static final String COL_8 = "month";
+    public static final String COL_9 = "year";
+    public static final String COL_10 = "dateinms";
+    public static final String COL_11 = "datecreated";
+    DecimalFormat decim = new DecimalFormat("0.00");
 
     private static DatabaseHelper mInstance = null;
 
@@ -40,7 +48,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_NAME +" (ID INTEGER PRIMARY KEY AUTOINCREMENT,TITLE TEXT,ITEM TEXT,ISCHECKED INTEGER, QUANTITY INTEGER,PRICE REAL )");
+        db.execSQL("CREATE TABLE " + TABLE_NAME +" (ID INTEGER PRIMARY KEY AUTOINCREMENT,TITLE TEXT,ITEM TEXT,ISCHECKED INTEGER, QUANTITY INTEGER,PRICE REAL,WEEK TEXT,MONTH TEXT,YEAR INTEGER,DATEINMS INTEGER,DATECREATED TEXT )");
     }
 
     @Override
@@ -49,7 +57,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean insertData(String title, String item,Integer ischecked,Integer qty, double price) {
+    public boolean insertData(String title, String item,Integer ischecked,Integer qty, double price,String week, String month, int yr,long datems,String date_created) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues contentValues = new ContentValues();
@@ -58,6 +66,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         contentValues.put(COL_4,ischecked);
         contentValues.put(COL_5,qty);
         contentValues.put(COL_6,price);
+        contentValues.put(COL_7,week);
+        contentValues.put(COL_8,month);
+        contentValues.put(COL_9,yr);
+        contentValues.put(COL_10,datems);
+        contentValues.put(COL_11,date_created);
 
 
         long result = db.insert(TABLE_NAME,null ,contentValues);
@@ -76,9 +89,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return res;
     }
 
-    public Cursor getTitle() {
+    public Cursor getTitle(String identifier) {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("select DISTINCT(TITLE) from "+TABLE_NAME,null);
+        Cursor res = db.rawQuery("select * from "+TABLE_NAME+ " where ITEM = '" + identifier +"'",null);
         return res;
     }
 
@@ -124,13 +137,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return count;
     }
+    public long getItemRemainingCount(String week, Integer is_checked,String itemidentifier) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteStatement s = db.compileStatement( "select count(ISCHECKED) from " + TABLE_NAME + " where WEEK = '" + week +"' AND ISCHECKED = '" + is_checked +"' AND ITEM != '" + itemidentifier+"'");
+        long count = s.simpleQueryForLong();
 
+        return count;
+    }
     public Cursor getIsChecked(String title,String item, Integer qty) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("select * from "+TABLE_NAME  + " where TITLE = '" + title+"' AND ITEM = '" + item +"' AND QUANTITY = '" + qty+"'",null);
         return res;
     }
-
+    public Cursor getItemWeekIsChecked(String week,int ischecked, String itemidentifier) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select * from " + TABLE_NAME + " where WEEK = '" + week +"' AND ITEM != '" + itemidentifier+"' AND ISCHECKED == '" + ischecked+"'",null);
+        return res;
+    }
 
     public long getItemCount(String title, String itemidentifier) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -140,6 +163,63 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return count;
     }
 
+    public long getItemWeekIsCheckedCount(String week,int ischecked, String itemidentifier) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteStatement s = db.compileStatement( "select count(ITEM) from " + TABLE_NAME + " where WEEK = '" + week +"' AND ITEM != '" + itemidentifier+"' AND ISCHECKED == '" + ischecked+"'");
+        long count = s.simpleQueryForLong();
+
+        return count;
+    }
+
+
+    public Cursor getWeekOrder() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select DISTINCT(WEEK), DATEINMS from " + TABLE_NAME + " ORDER BY DATEINMS",null);
+        return res;
+    }
+    public Cursor getMonthOrder() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select DISTINCT(MONTH), DATEINMS from " + TABLE_NAME + " ORDER BY DATEINMS",null);
+        return res;
+    }
+    public Cursor getYrOrder() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select DISTINCT(YEAR), DATEINMS from " + TABLE_NAME + " ORDER BY DATEINMS",null);
+        return res;
+    }
+    public Cursor getMaxID() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select MAX(ID) from " + TABLE_NAME,null);
+        return res;
+    }
+    public String getTotalSumSpent(String week){
+        double totalsum =0;
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("select SUM(QUANTITY * PRICE) from " + TABLE_NAME +  " where WEEK = '" + week +"'",null);
+        if(cursor.moveToFirst()) {
+            totalsum = cursor.getDouble(0);
+        }
+
+        round(totalsum,2);
+        String s = decim.format(totalsum);
+
+        return s;
+    }
+    public String getTotalSumSpent_ischecked(String week,int ischecked){
+        double totalsum =0;
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("select SUM(QUANTITY * PRICE) from " + TABLE_NAME +  " where WEEK = '" + week +"' AND ISCHECKED = '" + ischecked +"'",null);
+        if(cursor.moveToFirst()) {
+            totalsum = cursor.getDouble(0);
+        }
+
+        round(totalsum,2);
+        String s = decim.format(totalsum);
+
+        return s;
+    }
     public boolean itemExists(String title, String item) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery("select ITEM from "+TABLE_NAME + " where TITLE = '" + title +"' AND ITEM = '" + item +"'",null);
@@ -160,16 +240,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return true;
     }
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
 
-
-
-    public Cursor searchID(String d, String m, String y, String event, String hr, String min, String end_d, String end_m, String end_y, String end_hr, String end_min) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("select ID from "+TABLE_NAME + " where DAY = '" + d +"' AND MONTH = '" + m +"' AND YEAR = '" + y+"' AND EVENT = '" + event +"' AND HOUR = '" + hr+"' AND MINUTE = '" + min+"' AND ENDDAY = '" +end_d+"' AND ENDMONTH = '" +end_m+"' AND ENDYEAR = '" + end_y+"' AND ENDHOUR = '" + end_hr+"' AND ENDMINUTE = '" + end_min+"'",null);
-        return res;
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
-
-
 
     public boolean updateData(String id, String title, String item,Integer ischecked,Integer qty) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -189,7 +267,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_1,id);
         contentValues.put(COL_2,title);
-
         db.update(TABLE_NAME, contentValues, "ID = ?",new String[] { id });
         return true;
     }

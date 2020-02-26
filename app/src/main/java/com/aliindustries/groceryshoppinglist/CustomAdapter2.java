@@ -18,14 +18,17 @@ public class CustomAdapter2 extends BaseAdapter {
     private ArrayList<String>  Title;
     private ArrayList<Integer>  progressbar1;
     private ArrayList<String>  progressbartxt;
+    private ArrayList<String>  date_created;
+
     private View view2;
     private HashMap<Integer, Boolean> mSelection = new HashMap<Integer, Boolean>();
     LayoutInflater inflater;
-    public CustomAdapter2(Context context, ArrayList<String> text1,ArrayList<Integer> subtext1,ArrayList<String>subtext2) {
+    public CustomAdapter2(Context context, ArrayList<String> text1,ArrayList<Integer> subtext1,ArrayList<String>subtext2,ArrayList<String>subtext3) {
         mContext = context;
         Title = text1;
         progressbar1 = subtext1;
         progressbartxt = subtext2;
+        date_created = subtext3;
 
     }
     @Override
@@ -53,8 +56,8 @@ public class CustomAdapter2 extends BaseAdapter {
 
         TextView title;
         ProgressBar progressBar;
-
         TextView progressbartxtviw;
+        TextView datecreated2;
 
         inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
@@ -69,12 +72,14 @@ public class CustomAdapter2 extends BaseAdapter {
         title = (TextView) view2.findViewById(R.id.title1);
         progressBar = (ProgressBar) view2.findViewById(R.id.progressBar4);
         progressbartxtviw = (TextView) view2.findViewById(R.id.progressbartxtview);
+        datecreated2 = (TextView) view2.findViewById(R.id.datecreated);
 
         title.setText(Title.get(position));
 
         progressBar.setProgress(progressbar1.get(position));
 
         progressbartxtviw.setText(progressbartxt.get(position));
+        datecreated2.setText("Date created: " + date_created.get(position));
 
         view2.setBackgroundColor(mContext.getResources().getColor(android.R.color.transparent));
         if (mSelection.get(position) != null)

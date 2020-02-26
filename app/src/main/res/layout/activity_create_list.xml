@@ -13,7 +13,7 @@
         style="@style/Widget.AppCompat.ActionButton"
         android:clickable="true"
         android:onClick="backbtn4"
-        android:src="@drawable/backbtnwhite" />
+        app:srcCompat="@drawable/backbtnwhite" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -30,6 +30,7 @@
         android:textColorHint="@color/white"
         android:textColor="@color/white"
             android:id="@+id/edittext1"
+            android:maxLength="45"
         app:backgroundTint="@color/white"
             android:ems="10"
             android:inputType="textPersonName"

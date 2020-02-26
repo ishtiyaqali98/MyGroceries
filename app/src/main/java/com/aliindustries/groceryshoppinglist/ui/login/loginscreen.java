@@ -86,7 +86,6 @@ public class loginscreen extends AppCompatActivity {
     private int count2 = 0;
     ArrayList<addFirebaseList> addFirebaseLists = new ArrayList<>();
 
-    public ArrayList<String> storetitle = new ArrayList<>();
 
     String signinmethod = "";
     @Override
@@ -118,7 +117,6 @@ public class loginscreen extends AppCompatActivity {
                     try {
                         String emaileditextstring = usernameEditText.getText().toString().trim();
                         emaileditextstring = emaileditextstring.replace(".", "");
-
                         String signedinemailaddress = "";
                         signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
 
@@ -138,51 +136,62 @@ public class loginscreen extends AppCompatActivity {
                                 int data3 = cursor2.getInt(cursor2.getColumnIndex("ISCHECKED"));
                                 int data4 = cursor2.getInt(cursor2.getColumnIndex("QUANTITY"));
                                 double data5 = cursor2.getDouble(cursor2.getColumnIndex("PRICE"));
-                                final String mydata = justAlphaChars(data1);
+                                String data6 = cursor2.getString(cursor2.getColumnIndex("WEEK"));
+                                String data7 = cursor2.getString(cursor2.getColumnIndex("MONTH"));
+                                int data8 = cursor2.getInt(cursor2.getColumnIndex("YEAR"));
+                                long data9 = cursor2.getLong(cursor2.getColumnIndex("DATEINMS"));
+                                String data10 = cursor2.getString(cursor2.getColumnIndex("DATECREATED"));
+
 
                                 if (count2 > 0 && addFirebaseLists.size() <= count2) {
-                                    addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5);
+                                    addFirebaseList addFirebaseList = new addFirebaseList(data0, data1, data2, data3, data4, data5,data6,data7,data8,data9,data10);
+
+                                    System.out.println("this is all data: " + data0);
                                     addFirebaseLists.add(addFirebaseList);
-                                    storetitle.add(data0+mydata);
                                 }
 
                                 mref = FirebaseDatabase.getInstance().getReference(signedinemailaddress);
-
                                 mref.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot snapshot) {
-                                        if(addFirebaseLists.size() > 0) {
+                                        if (addFirebaseLists.size() > 0) {
                                             for (int i = 0; i < addFirebaseLists.size(); i++) {
                                                 int identifier1 = addFirebaseLists.get(i).getID();
+                                                String thedata1 = addFirebaseLists.get(i).getTitle();
 
-                                                if (snapshot.child(identifier1+mydata).child(identifier1+mydata+"item").hasChild(Integer.toString(addFirebaseLists.get(i).getID()))) {
+                                                if (snapshot.child(identifier1 + thedata1).child(identifier1 + thedata1 + "item").hasChild(Integer.toString(addFirebaseLists.get(i).getID()))) {
                                                 } else {
                                                     int identifier2 = addFirebaseLists.get(i).getID();
-                                                    mref.child(identifier2+mydata).child(identifier2+mydata+"item").setValue(addFirebaseLists.get(i));
-                                                } } }
+                                                    mref.child(identifier2 + thedata1).child(identifier2 + thedata1 + "item").setValue(addFirebaseLists.get(i));
+                                                }
+                                            }
+                                        }
+
+
                                     }
                                     @Override
                                     public void onCancelled(@NonNull DatabaseError databaseError) {
 
                                     }
                                 });
-
                                 // do what ever you want here
                             } while (cursor2.moveToNext());
                         }
                         cursor2.close();
 
-
-
-
-                        new fromFirebaseToSQLite().execute();
                     }
                     catch (Exception e) {
                         e.printStackTrace();
                     }
 
+
+                    new fromFirebaseToSQLite().execute();
+
+
                     Intent i = new Intent(loginscreen.this, MainActivity.class);
                     startActivity(i);
+                    finish();
+                    overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down);
 
                 }
             }
@@ -432,13 +441,10 @@ public class loginscreen extends AppCompatActivity {
 
     public class fromFirebaseToSQLite extends AsyncTask<Integer, Void, String>
     {
-        ProgressDialog progressDialog = new ProgressDialog(loginscreen.this);
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressDialog.setMessage("Loading.... please wait");
-            progressDialog.show();
         }
 
         @Override
@@ -466,19 +472,15 @@ public class loginscreen extends AppCompatActivity {
 
                                 for (DataSnapshot ds : snapshot.getChildren()) {
                                     String uid = ds.getKey();
-                                    System.out.println("this is the uid: " + uid);
                                     titlekey.add(uid);
                                 }
 
                                 for(int i = 0; i< titlekey.size();i++) {
 
                                     String sh = snapshot.child(titlekey.get(i)).child(titlekey.get(i)+"item").getKey();
-
                                     itemkey2.add(sh);
 
                                 }
-
-
 
                                 for (int i = 0; i < titlekey.size(); i++) {
                                         Object obj1 = snapshot.child(titlekey.get(i)).child(itemkey2.get(i)).child("item").getValue();
@@ -487,12 +489,24 @@ public class loginscreen extends AppCompatActivity {
                                         Object obj4 = snapshot.child(titlekey.get(i)).child(itemkey2.get(i)).child("qty").getValue();
                                         Object obj5 = snapshot.child(titlekey.get(i)).child(itemkey2.get(i)).child("title").getValue();
 
-                                        String item = "";
+                                    Object obj6 = snapshot.child(titlekey.get(i)).child(itemkey2.get(i)).child("week").getValue();
+                                    Object obj7 = snapshot.child(titlekey.get(i)).child(itemkey2.get(i)).child("month").getValue();
+                                    Object obj8 = snapshot.child(titlekey.get(i)).child(itemkey2.get(i)).child("year").getValue();
+                                    Object obj9 = snapshot.child(titlekey.get(i)).child(itemkey2.get(i)).child("dateinms").getValue();
+                                    Object obj10 = snapshot.child(titlekey.get(i)).child(itemkey2.get(i)).child("datecreated").getValue();
+
+                                    String item = "";
                                         int ischecked = 0;
                                         double price = 0;
                                         int quantity = 0;
                                         String title = "";
-//ERROR IN MIGRATING FIREBASE TO SQLITE. ERROR IS IN STORETITLE (STORETITLE.ADD) AND THE FACT WE DIDNT STORE VALUE FROM FIREBASE TO SQLITE
+
+                                    String week = "";
+                                    String month = "";
+                                    int yr = 0;
+                                    long datems = 0;
+                                    String createdate = "";
+
                                     System.out.println("this is: " + obj1 + " " + obj2  +" " + obj3);
 
                                         try {
@@ -501,13 +515,18 @@ public class loginscreen extends AppCompatActivity {
                                             price = Double.parseDouble(obj3.toString().trim());
                                             quantity = Integer.parseInt(obj4.toString().trim());
                                             title = obj5.toString().trim();
+                                            week = obj6.toString().trim();
+                                            month = obj7.toString().trim();
+                                            yr = Integer.parseInt(obj8.toString().trim());
+                                            datems = Long.parseLong(obj9.toString().trim());
+                                            createdate = obj10.toString().trim();
 
                                             if (!myDb.itemExists(title, item)) {
 
-                                                Boolean a = myDb.insertData(title, item, ischecked, quantity, price);
+                                                Boolean a = myDb.insertData(title, item, ischecked, quantity, price,week,month,yr,datems,createdate);
                                                 if (a == true) {
-                                                    Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Grocery lists loaded!", Snackbar.LENGTH_LONG);
-                                                    snackbar.show();
+                                                    Toast.makeText(loginscreen.this,"Grocery lists loaded!",Toast.LENGTH_LONG).show();
+
                                                 }
                                             }
 
@@ -537,9 +556,20 @@ public class loginscreen extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            progressDialog.dismiss();
 
         }
     }
 
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        startActivity(new Intent(loginscreen.this,MainActivity.class));
+        finish();
+        overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down);
+
+
+
+    }
 }

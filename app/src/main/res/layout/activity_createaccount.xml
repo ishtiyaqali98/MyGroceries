@@ -98,7 +98,7 @@
         style="@style/Widget.AppCompat.Button.Colored"
         android:padding="15dp"
         android:textAllCaps="false"
-        android:drawableLeft="@drawable/account"
+        app:drawableLeftCompat="@drawable/account"
         android:drawablePadding="15dp"
         android:paddingBottom="15dp"
         android:paddingTop="15dp"

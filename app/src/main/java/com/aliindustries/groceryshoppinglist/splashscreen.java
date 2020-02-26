@@ -9,6 +9,8 @@ import android.os.CountDownTimer;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
+import java.util.Calendar;
+
 public class splashscreen extends AppCompatActivity {
     CountDownTimer mCountDownTimer;
     TextView title;
@@ -17,6 +19,13 @@ public class splashscreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splashscreen);
         title = (TextView) findViewById(R.id.splashscreentitle);
+
+
+        Calendar calendar = Calendar.getInstance();
+
+        calendar.set(Calendar.DAY_OF_WEEK,Calendar.MONDAY);
+
+
         android.graphics.Typeface custom_font2 = android.graphics.Typeface.createFromAsset(getAssets(),  "fonts/blanka.ttf");
         title.setTypeface(custom_font2);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
