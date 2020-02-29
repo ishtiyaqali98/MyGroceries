@@ -1,11 +1,15 @@
 package com.aliindustries.groceryshoppinglist;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -14,6 +18,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -48,8 +53,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
@@ -104,7 +111,23 @@ public class MainActivity extends AppCompatActivity {
                 overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down);
             }
         });
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        boolean getbool = prefs.getBoolean("checkswitch", true);
+        boolean getbool2 = prefs.getBoolean("checkswitch2", true);
 
+        if(getbool == true) {
+            setRepeatedNotification(0,1,0,0);
+        }
+        else {
+            disableAlarmManager(0);
+        }
+
+        if(getbool2 == true) {
+            setRepeatedNotification2(1,2,0,0);
+        }
+        else {
+            disableAlarmManager2(1);
+        }
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.ic_launcher_background));
@@ -132,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView.bringToFront();
 
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
@@ -316,14 +340,9 @@ public class MainActivity extends AppCompatActivity {
                     emailfirebasenode = emailfirebasenode + "10125signincode";
                 }
                 String emaileditextstring = emailfirebasenode;
-                String signedinemailaddress = "";
+                String signedinemailaddress = emaileditextstring;
                 signinmethod = FirebaseAuth.getInstance().getCurrentUser().getIdToken(false).getResult().getSignInProvider().toString().trim();
 
-                if (!signinmethod.trim().equals("password")) {
-                    signedinemailaddress = emaileditextstring;
-                } else {
-                    signedinemailaddress = emaileditextstring + "10125signincode";
-                }
 
                 count2 = (int) myDb.getAllCount();
                 Cursor cursor2 = myDb.getAllData();
@@ -839,4 +858,74 @@ public class MainActivity extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+
+
+    private void setRepeatedNotification(int ID, int hh, int mm, int ss) {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent alarmIntent = new Intent(MainActivity.this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, ID, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmIntent.setData((Uri.parse("custom://"+System.currentTimeMillis())));
+        assert alarmManager != null;
+        alarmManager.cancel(pendingIntent);
+
+        Calendar calendar = Calendar.getInstance();
+        Calendar now = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hh);
+        calendar.set(Calendar.MINUTE, mm);
+        calendar.set(Calendar.SECOND, ss);
+
+        //check whether the time is earlier than current time. If so, set it to tomorrow. Otherwise, all alarms for earlier time will fire
+
+        if(calendar.before(now)){
+            calendar.add(Calendar.DATE, 1);
+        }
+
+        if (alarmManager != null) {
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_HALF_DAY, pendingIntent);
+        }
+
+    }
+
+
+    private void setRepeatedNotification2(int ID, int hh, int mm, int ss) {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent alarmIntent = new Intent(MainActivity.this, SpendReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, ID, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmIntent.setData((Uri.parse("custom://"+System.currentTimeMillis())));
+        assert alarmManager != null;
+        alarmManager.cancel(pendingIntent);
+
+        Calendar calendar = Calendar.getInstance();
+        Calendar now = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hh);
+        calendar.set(Calendar.MINUTE, mm);
+        calendar.set(Calendar.SECOND, ss);
+
+        //check whether the time is earlier than current time. If so, set it to tomorrow. Otherwise, all alarms for earlier time will fire
+
+        if(calendar.before(now)){
+            calendar.add(Calendar.DATE, 1);
+        }
+
+        if (alarmManager != null) {
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_HALF_DAY, pendingIntent);
+        }
+
+    }
+    public void disableAlarmManager(int requestcode){
+
+        Intent intent = new Intent(MainActivity.this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), requestcode, intent, 0);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        assert alarmManager != null;
+        alarmManager.cancel(pendingIntent);
+    }
+    public void disableAlarmManager2(int requestcode){
+
+        Intent intent = new Intent(MainActivity.this, SpendReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), requestcode, intent, 0);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        assert alarmManager != null;
+        alarmManager.cancel(pendingIntent);
+    }
 }

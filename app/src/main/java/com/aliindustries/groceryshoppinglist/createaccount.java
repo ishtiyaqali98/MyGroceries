@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -138,8 +139,14 @@ public class createaccount extends AppCompatActivity {
         });
 
         button.setOnClickListener(new View.OnClickListener() {
+            private long mLastClickTime = 0;
+
             @Override
             public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 2100) {
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
                 create_account();
             }
         });

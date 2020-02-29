@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -223,8 +224,6 @@ public class moneyspentactivity extends AppCompatActivity {
                 now.set(Calendar.MINUTE, 59);
                 now.set(Calendar.SECOND, 59);
 
-                System.out.println("this is now: " + now.getTime());
-
                 int counter = end.get(Calendar.DAY_OF_MONTH);
 
                 while (end.before(now)) {
@@ -373,8 +372,14 @@ public class moneyspentactivity extends AppCompatActivity {
 
 
         buttonpaid.setOnClickListener(new View.OnClickListener() {
+            private long mLastClickTime = 0;
+
             @Override
             public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
                 spentdatetitles = dateview.getText().toString().trim();
                 Intent i = new Intent(moneyspentactivity.this,itempaid.class);
                 i.putExtra("paiditems",spentdatetitles);
@@ -387,8 +392,14 @@ public class moneyspentactivity extends AppCompatActivity {
         });
 
         button2unpaid.setOnClickListener(new View.OnClickListener() {
+            private long mLastClickTime = 0;
+
             @Override
             public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
                 spentdatetitles = dateview.getText().toString().trim();
                 Intent i = new Intent(moneyspentactivity.this,itemunpaid.class);
                 i.putExtra("paiditems",spentdatetitles);
@@ -554,4 +565,6 @@ public class moneyspentactivity extends AppCompatActivity {
 
 
     }
+
+
 }

@@ -23,9 +23,20 @@
         android:textSize="@dimen/subitemsize"
         android:checked="true"
         android:text="Receive notifications from MyGroceries"
-
         android:switchPadding="16dp"
         tools:layout_editor_absoluteX="188dp"
         tools:layout_editor_absoluteY="93dp" />
+        <Switch
+            android:id="@+id/switch2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="@dimen/subitemsize"
+            android:checked="true"
+            android:layout_marginTop="25dp"
+            android:text="Receive your spending notifications from MyGroceries"
+            android:switchPadding="16dp"
+            tools:layout_editor_absoluteX="188dp"
+            tools:layout_editor_absoluteY="93dp" />
     </LinearLayout>
 </RelativeLayout>

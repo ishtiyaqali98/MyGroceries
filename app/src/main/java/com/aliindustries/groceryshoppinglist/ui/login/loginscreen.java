@@ -201,8 +201,14 @@ public class loginscreen extends AppCompatActivity {
 
 
         materialButton.setOnClickListener(new View.OnClickListener() {
+            private long mLastClickTime = 0;
+
             @Override
             public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
                 Intent i = new Intent(loginscreen.this, createaccount.class);
                 startActivity(new Intent(i));
             }
