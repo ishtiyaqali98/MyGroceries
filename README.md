@@ -22,9 +22,15 @@ MyGroceries intends to allow users to create fast lists without too much user in
     - Allow users to update or delete items
     
     
-
-
-
 <p align="center">
   <img src="https://github.com/ish2nv/MyGroceries/blob/master/logoimg/hijrigiftutorial3.gif" alt="app tutorial">
 </p>
+
+
+## Installation
+
+
+Download in PlayStore: [MyGroceries](https://play.google.com/store/apps/details?id=com.aliindustries.groceryshoppinglist&hl=en_GB)
+
+
+
