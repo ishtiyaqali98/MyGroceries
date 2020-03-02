@@ -31,9 +31,6 @@
 </LinearLayout>
 
 
-
-
-
     <ListView
         android:layout_width="match_parent"
         android:id="@+id/listview20"

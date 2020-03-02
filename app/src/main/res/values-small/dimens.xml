@@ -7,6 +7,7 @@
     <dimen name="edittextsize">23sp</dimen>
     <dimen name="edittextsizebtn">20sp</dimen>
     <dimen name="minwidtheditext">275dp</dimen>
+    <dimen name="subitemsize2">14sp</dimen>
 
 
 </resources>

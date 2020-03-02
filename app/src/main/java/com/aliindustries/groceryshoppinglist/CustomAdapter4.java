@@ -322,16 +322,12 @@ public class CustomAdapter4 extends BaseAdapter implements Filterable {
                             int data = cursor.getInt(cursor.getColumnIndex("QUANTITY"));
                             int data2 = cursor.getInt(cursor.getColumnIndex("ID"));
                             String data3 = cursor.getString(cursor.getColumnIndex("TITLE"));
-                            String data4 = cursor.getString(cursor.getColumnIndex("ITEM"));
-                            int data5 = cursor.getInt(cursor.getColumnIndex("ISCHECKED"));
-                            double data6 = cursor.getDouble(cursor.getColumnIndex("PRICE"));
+
 
                             qty = data;
                             id = data2;
                             pp_title = data3;
-                            pp_item = data4;
-                            pp_is_checked = data5;
-                            pp_prices = data6;
+
                         }
                         while(cursor.moveToNext());
                     }

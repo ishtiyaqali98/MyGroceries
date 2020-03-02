@@ -16,8 +16,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -42,7 +40,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,7 +47,6 @@ import java.util.List;
 
 
 import static com.aliindustries.groceryshoppinglist.MainActivity.justAlphaChars;
-import static java.security.AccessController.getContext;
 
 import static com.aliindustries.groceryshoppinglist.CustomAdapter3.mc_currentcurrency;
 
@@ -65,7 +61,6 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
     DatabaseReference mref;
     FirebaseAuth firebaseAuth;
     ArrayList<addFirebaseList> addFirebaseLists = new ArrayList<>();
-    private int count2 = 0;
     int count = 0;
     DatabaseHelper myDb;
     String newitem = "";
@@ -388,6 +383,10 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
         String s = decim.format(total2);
         textView.setText("Total: " + mc_currentcurrency + s);
 
+
+        TextView empty = new TextView(this);
+        empty.setHeight(90);
+        listView.addFooterView(empty);
 
     }
 
@@ -774,7 +773,7 @@ public class ItemActivity extends AppCompatActivity implements searchFragment.On
 
                 case R.id.edit:
                     AlertDialog.Builder builder = new AlertDialog.Builder(ItemActivity.this);
-                    builder.setTitle("Set item (continue if otherwise)");
+                    builder.setTitle("Set item (continue to Qty if otherwise)");
                     View viewInflated = LayoutInflater.from(ItemActivity.this).inflate(R.layout.edittextdialog, (ViewGroup) findViewById(android.R.id.content), false);
                     final EditText input = (EditText) viewInflated.findViewById(R.id.editText55);
                     builder.setView(viewInflated);

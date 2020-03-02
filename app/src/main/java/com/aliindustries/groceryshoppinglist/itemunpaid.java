@@ -135,7 +135,9 @@ public class itemunpaid extends AppCompatActivity {
 
         listView.setAdapter(customAdapter5);
 
-
+        TextView empty = new TextView(this);
+        empty.setHeight(90);
+        listView.addFooterView(empty);
     }
 
 

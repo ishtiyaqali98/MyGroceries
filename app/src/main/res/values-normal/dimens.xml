@@ -3,6 +3,7 @@
 
     <dimen name="itemsize">25sp</dimen>
     <dimen name="subitemsize">19sp</dimen>
+    <dimen name="subitemsize2">15sp</dimen>
 
     <dimen name="edittextsize">23sp</dimen>
     <dimen name="edittextsizebtn">20sp</dimen>

@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/lin1"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="5dp"
         android:layout_marginLeft="25dp"
         android:layout_marginRight="25dp"
         android:orientation="horizontal">
@@ -16,8 +16,9 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:id="@+id/title1"
+            android:textStyle="bold"
             android:gravity="center_vertical"
-            android:textSize="@dimen/itemsize"
+            android:textSize="@dimen/subitemsize"
             ></TextView>
 
     </LinearLayout>
@@ -57,7 +58,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/datecreated"
-            android:layout_marginBottom="15dp"
+            android:layout_marginBottom="5dp"
             android:textSize="12sp"
             android:textStyle="italic"
             ></TextView>

@@ -53,7 +53,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -121,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
         else {
             disableAlarmManager(0);
         }
-
         if(getbool2 == true) {
             setRepeatedNotification2(1,2,0,0);
         }

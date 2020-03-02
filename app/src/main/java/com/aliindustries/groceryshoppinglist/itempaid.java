@@ -135,7 +135,9 @@ public class itempaid extends AppCompatActivity {
         customAdapter5 = new CustomAdapter5(itempaid.this,o_item,qty,price,listtitle);
 
         listView.setAdapter(customAdapter5);
-
+        TextView empty = new TextView(this);
+        empty.setHeight(90);
+        listView.addFooterView(empty);
     }
 
     @Override

@@ -39,15 +39,18 @@ public class SpendReceiver extends BroadcastReceiver{
         Calendar calendarsunday = Calendar.getInstance();
         Calendar calendarmonday = Calendar.getInstance();
 
-        calendarmonday.set(Calendar.DAY_OF_WEEK,Calendar.MONDAY);
+        calendarsunday.set(Calendar.DAY_OF_WEEK,Calendar.SUNDAY);
+        calendarsunday.set(Calendar.HOUR_OF_DAY, 23);
+        calendarsunday.set(Calendar.MINUTE, 59);
+        calendarsunday.set(Calendar.SECOND, 59);
+
+
+        calendarmonday.set(Calendar.DAY_OF_MONTH,calendarsunday.get(Calendar.DAY_OF_MONTH)-6);
         calendarmonday.set(Calendar.HOUR_OF_DAY, 0);
         calendarmonday.set(Calendar.MINUTE, 0);
         calendarmonday.set(Calendar.SECOND, 0);
 
-        calendarsunday.set(Calendar.DAY_OF_MONTH,calendarmonday.get(Calendar.DAY_OF_MONTH)+6);
-        calendarsunday.set(Calendar.HOUR_OF_DAY, 23);
-        calendarsunday.set(Calendar.MINUTE, 59);
-        calendarsunday.set(Calendar.SECOND, 59);
+
 
         int k2 = calendarmonday.get(Calendar.DAY_OF_MONTH);
         String k3 = getMonthName_Abbr(calendarmonday.get(Calendar.MONTH));
